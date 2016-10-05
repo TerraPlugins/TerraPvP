@@ -17,6 +17,7 @@ namespace TerraPvP
         public static IDbConnection Db { get; private set; }
         public static PRankManager RankManager { get; private set; }
         public List<PRank> usersinqeue = new List<PRank>();
+        public List<PVPDuel> pvpduel = new List<PVPDuel>();
 
         #region Info
         public override string Name { get { return "TerraPvP"; } }
@@ -93,6 +94,33 @@ namespace TerraPvP
             PRank player = new PRank(e.Player.User.ID, e.Player.Name, mmr, rank);
             usersinqeue.Add(player);
             e.Player.SendSuccessMessage("You entered the qeue succesfully");
+        }
+
+        void _checkqueue()
+        {
+            for (int i = 0; i < usersinqeue.Count; i++)
+            {
+                for (int ii = 0; ii < usersinqeue.Count; ii++)
+                {
+                    // Check if diference of mmr is not more than 100 or lower than 100
+                    if(usersinqeue[i].MMR + 100 < usersinqeue[ii].MMR || usersinqeue[i].MMR - 100 < usersinqeue[ii].MMR)
+                    {
+                        //add them to a arena
+                        PVPDuel duel = new PVPDuel(usersinqeue[i], usersinqeue[ii]);
+                        pvpduel.Add(duel);
+                        //delete them from qeue list
+                        usersinqeue.RemoveAt(i);
+                        int userid = usersinqeue[ii].UserID;
+                        for (int o = 0; o < usersinqeue.Count; o++)
+                        {
+                            if (usersinqeue[o].UserID == userid)
+                            {
+                                usersinqeue.RemoveAt(o);
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         void getstats(CommandArgs e)
