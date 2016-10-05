@@ -24,6 +24,17 @@ namespace TerraPvP
         public override Version Version { get { return new Version(1, 0, 0); } }
         #endregion
 
+        /* already done:
+         * Database
+         * Player list
+         * Duel list
+         * 
+         * TODO:
+         * Add arena regions system
+         * Know if some region is free, if so teleport them and start pvp, save their info for when they finish, give mmr to winner, delete mmr from loser, change ranks if needed
+         * Change rank if mmr is higher or lower than actual rank mmr limit
+         */
+
         public TerraPvP(Main game) : base(game)
         {
 
