@@ -10,7 +10,6 @@ namespace TerraPvP
     {
         private IDbConnection db;
         public List<PRank> pranks = new List<PRank>();
-        private object syncLock = new object();
         private bool exists = false;
 
         public PRankManager(IDbConnection db)
@@ -40,9 +39,6 @@ namespace TerraPvP
 
         public void addPlayer(PRank player)
         {
-            Console.WriteLine("addplayer called");
-            
-
             for (int i = 0; i < pranks.Count; i++)
             {
                 if (pranks[i].UserID == player.UserID)
@@ -65,7 +61,6 @@ namespace TerraPvP
                 player.Name,
                 player.MMR,
                 player.Rank));
-                Console.WriteLine("added user " + player.Name + " to database");
             }
             exists = false;
         }
@@ -89,18 +84,6 @@ namespace TerraPvP
                     pranks[i].updateRank(player.MMR);
                 }
                 
-            }
-        }
-
-        public void getStats(PRank player)
-        {
-            for (int i = 0; i < pranks.Count; i++)
-            {
-                if (pranks[i].UserID == player.UserID)
-                {
-                    
-                }
-
             }
         }
     }
