@@ -74,6 +74,27 @@ namespace TerraPvP
             Arenas.Add(arena);
         }
 
+        public void delArena(Arena arena)
+        {
+            try
+            {
+                db.Query("DELETE FROM Arenas WHERE Region = @0", arena.regionName);
+
+                for (int i = 0; i < Arenas.Count; i++)
+                {
+                    if (Arenas[i].regionName == arena.regionName)
+                    {
+                        Arenas.RemoveAt(i);
+                    }
+                }
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e.StackTrace);
+            }
+            
+        }
+
         public void addPlayer(PRank player)
         {
             for (int i = 0; i < pranks.Count; i++)

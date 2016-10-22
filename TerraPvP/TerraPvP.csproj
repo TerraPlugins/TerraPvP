@@ -75,6 +75,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Arena.cs" />
+    <Compile Include="ConfigFile.cs" />
     <Compile Include="PVPDuel.cs" />
     <Compile Include="PRankManager.cs" />
     <Compile Include="PRank.cs" />

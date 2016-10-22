@@ -18,6 +18,8 @@ namespace TerraPvP
         private int player1index { get; set; }
         private int player2index { get; set; }
 
+        public ConfigFile Config = new ConfigFile();
+
         public PVPDuel(PRank user1, PRank user2)
         {
             creationSucces = false;
@@ -91,9 +93,9 @@ namespace TerraPvP
                 NetMessage.SendData((int)PacketTypes.TogglePvp, -1, -1, "", player2index);
 
                 Color color = new Color(126, 226, 126);
-                TShock.Utils.Broadcast("[TerraPvP] " + Winner.Name + " won vs " + Loser.Name, color);
-                TShock.Players[player1index].SendSuccessMessage("Type /spawn to return");
-                TShock.Players[player2index].SendSuccessMessage("Type /spawn to return");
+                TShock.Utils.Broadcast("[TerraPvP] " + Winner.Name + " ("+ Winner.Rank+ ", " + Winner.MMR + ")" + " won vs " + Loser.Name + " (" + Loser.Rank + ", " + Loser.MMR + ")", color);
+                TShock.Players[player1index].SendInfoMessage(Config.PvPFinishMessage);
+                TShock.Players[player2index].SendInfoMessage(Config.PvPFinishMessage);
 
                 foreach(Arena arena in TerraPvP.RankManager.Arenas)
                 {

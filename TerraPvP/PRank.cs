@@ -1,4 +1,7 @@
-﻿namespace TerraPvP
+﻿using System;
+using System.Collections.Generic;
+
+namespace TerraPvP
 {
     public class PRank
     {
@@ -22,7 +25,35 @@
 
         public void checkRank()
         {
-            //if mmr is bigger than x, update rank.. make a rank list config
+            try
+            {
+                foreach (ConfigFile.Rank rank in TerraPvP.ranklist)
+                {
+                    if (MMR >= rank.mmr)
+                    {
+                        Rank = rank.name;
+                    }
+                    else
+                    {
+                        break;
+                    }
+                }
+
+                TerraPvP.RankManager.updatePlayer(this);
+                foreach(PRank prank in TerraPvP.RankManager.pranks)
+                {
+                    if(prank.UserID == UserID)
+                    {
+                        prank.Rank = Rank;
+                    }
+                }
+                
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e.StackTrace);
+            }
+            
         }
     }
 }
