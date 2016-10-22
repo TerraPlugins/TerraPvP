@@ -11,6 +11,7 @@ namespace TerraPvP
     {
         private IDbConnection db;
         public List<PRank> pranks = new List<PRank>();
+        public List<PRank> topten = new List<PRank>();
         public List<Arena> Arenas = new List<Arena>();
         private bool exists = false;
 
@@ -85,6 +86,29 @@ namespace TerraPvP
                     if (Arenas[i].regionName == arena.regionName)
                     {
                         Arenas.RemoveAt(i);
+                    }
+                }
+            }
+            catch(Exception e)
+            {
+                Console.WriteLine(e.StackTrace);
+            }
+            
+        }
+
+        public void topTen()
+        {
+            try
+            {
+                using (QueryResult result = db.QueryReader("SELECT * FROM UserRanks ORDER BY MMR DESC LIMIT 10"))
+                {
+                    while (result.Read())
+                    {
+                        topten.Add(new PRank(
+                            result.Get<int>("UserID"),
+                            result.Get<string>("Name"),
+                            result.Get<int>("MMR"),
+                            result.Get<string>("Rank")));
                     }
                 }
             }

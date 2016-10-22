@@ -105,6 +105,10 @@ namespace TerraPvP
             {
                 HelpText = "Usage: /delarena <arena name>"
             });
+            Commands.ChatCommands.Add(new Command("terrapvp.stats", topTen, "topten")
+            {
+                HelpText = "Usage: /topten"
+            });
 
             Db = new SqliteConnection("uri=file://" + Path.Combine(TShock.SavePath, "TerraPvP.sqlite") + ",Version=3");
 
@@ -209,6 +213,18 @@ namespace TerraPvP
             checkQTimer.Stop();
             _checkqeue();
             checkQTimer.Start();
+        }
+
+        void topTen(CommandArgs e)
+        {
+            RankManager.topTen();
+            int i = 1;
+            e.Player.SendSuccessMessage("[TerraPvP] Top 10 ladder:");
+            foreach (PRank player in RankManager.topten)
+            {
+                e.Player.SendSuccessMessage(i + ". Name: " + player.Name + " Rank: " + player.Rank + " MMR: " + player.MMR);
+                i++;
+            }
         }
 
         void listArenas(CommandArgs e)
