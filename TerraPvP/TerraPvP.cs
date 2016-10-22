@@ -90,7 +90,7 @@ namespace TerraPvP
             });
             Commands.ChatCommands.Add(new Command("terrapvp.arena", setArenaSpawn, "setarenaspawn")
             {
-                HelpText = "Usage: /setpvpspawn <arena name> <1 / 2>"
+                HelpText = "Usage: /setarenaspawn <arena name> <1 / 2>"
             });
             Commands.ChatCommands.Add(new Command("terrapvp.arena", saveArena, "savearena")
             {
