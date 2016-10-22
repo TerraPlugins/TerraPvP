@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using TShockAPI.DB;
 using MySql.Data.MySqlClient;
+using TShockAPI;
 
 namespace TerraPvP
 {
@@ -10,6 +11,7 @@ namespace TerraPvP
     {
         private IDbConnection db;
         public List<PRank> pranks = new List<PRank>();
+        public List<Arena> Arenas = new List<Arena>();
         private bool exists = false;
 
         public PRankManager(IDbConnection db)
@@ -24,6 +26,28 @@ namespace TerraPvP
                 new SqlColumn("MMR", MySqlDbType.Int32),
                 new SqlColumn("Rank", MySqlDbType.Text)));
 
+            sqlCreator.EnsureTableStructure(new SqlTable("Arenas",
+                new SqlColumn("ID", MySqlDbType.Int32) { Primary = true, AutoIncrement = true },
+                new SqlColumn("Region", MySqlDbType.Text) { Unique = true },
+                new SqlColumn("spawn1_x", MySqlDbType.Float),
+                new SqlColumn("spawn1_y", MySqlDbType.Float),
+                new SqlColumn("spawn2_x", MySqlDbType.Float),
+                new SqlColumn("spawn2_y", MySqlDbType.Float)
+                ));
+
+            using (QueryResult result = db.QueryReader("SELECT * FROM Arenas"))
+            {
+                while (result.Read())
+                {
+                    Arenas.Add(new Arena(
+                        result.Get<string>("Region"),
+                        result.Get<float>("spawn1_x"),
+                        result.Get<float>("spawn1_y"),
+                        result.Get<float>("spawn2_x"),
+                        result.Get<float>("spawn2_x")));
+                }
+            }
+
             using (QueryResult result = db.QueryReader("SELECT * FROM UserRanks"))
             {
                 while (result.Read())
@@ -35,6 +59,19 @@ namespace TerraPvP
                         result.Get<string>("Rank")));
                 }
             }
+        }
+
+        public void addArena(Arena arena)
+        {
+            db.Query("INSERT INTO Arenas (Region, spawn1_x, spawn1_y, spawn2_x, spawn2_x) VALUES (@0, @1, @2, @3, @4)",
+                arena.regionName,
+                arena.spawn1_x,
+                arena.spawn1_y,
+                arena.spawn2_x,
+                arena.spawn2_y
+                );
+
+            Arenas.Add(arena);
         }
 
         public void addPlayer(PRank player)
