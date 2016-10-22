@@ -8,6 +8,7 @@ TerraPvP is a plugin for TShock that adds a pvp ranking ladder with a qeue.
 
 - /pvpqeue
 - /pvpstats \<name> or /pvpstats
+- /topten
 - /createarena \<arena name>
 - /setpvpspawn \<arena name> \<1 / 2>
 - /savearena \<arena name>
@@ -16,7 +17,7 @@ TerraPvP is a plugin for TShock that adds a pvp ranking ladder with a qeue.
 
 ## Permissions
 - terrapvp.qeue (/pvpqeue)
-- terrapvp.stats (/pvpstats)
+- terrapvp.stats (/pvpstats, /topten)
 - terrapvp.list (/listarenas)
 
 ### Admin
