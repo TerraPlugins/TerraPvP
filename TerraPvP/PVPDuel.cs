@@ -6,7 +6,7 @@ using TShockAPI;
 
 namespace TerraPvP
 {
-    public class PVPDuel
+    public class PVPFight
     {
         public PRank User1 { get; set; }
         public PRank User2 { get; set; }
@@ -20,12 +20,12 @@ namespace TerraPvP
 
         public ConfigFile Config = new ConfigFile();
 
-        public PVPDuel(PRank user1, PRank user2)
+        public PVPFight(PRank user1, PRank user2)
         {
             creationSucces = false;
             try
             {
-                foreach(Arena arena in TerraPvP.RankManager.Arenas)
+                foreach(Arena arena in TerraPvP.DbManager.Arenas)
                 {
                     if (!arena.someoneFighting)
                     {
@@ -94,10 +94,10 @@ namespace TerraPvP
 
                 Color color = new Color(126, 226, 126);
                 TShock.Utils.Broadcast("[TerraPvP] " + Winner.Name + " ("+ Winner.Rank+ ", " + Winner.MMR + ")" + " won vs " + Loser.Name + " (" + Loser.Rank + ", " + Loser.MMR + ")", color);
-                TShock.Players[player1index].SendInfoMessage(Config.PvPFinishMessage);
-                TShock.Players[player2index].SendInfoMessage(Config.PvPFinishMessage);
+                TShock.Players[player1index].SendInfoMessage(Config.onPvPFinishMessage);
+                TShock.Players[player2index].SendInfoMessage(Config.onPvPFinishMessage);
 
-                foreach(Arena arena in TerraPvP.RankManager.Arenas)
+                foreach(Arena arena in TerraPvP.DbManager.Arenas)
                 {
                     if(arena.regionName == arenaName)
                     {

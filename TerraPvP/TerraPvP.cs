@@ -15,26 +15,21 @@ namespace TerraPvP
     public class TerraPvP : TerrariaPlugin
     {
         public static IDbConnection Db { get; private set; }
-        public static PRankManager RankManager { get; private set; }
+        public static DBManager DbManager { get; private set; }
         public static List<ConfigFile.Rank> ranklist = new List<ConfigFile.Rank>();
 
-        public List<PRank> usersinqeue = new List<PRank>();
-        public List<PVPDuel> pvpduel = new List<PVPDuel>();
+        public List<PRank> UsersInQeue = new List<PRank>();
+        public List<PVPFight> PvPFights = new List<PVPFight>();
         public List<Arena> Arenas = new List<Arena>();
         public ConfigFile Config = new ConfigFile();
-        Timer checkQTimer = new Timer();
+        Timer CheckQTimer = new Timer();
 
         #region Info
         public override string Name { get { return "TerraPvP"; } }
         public override string Author { get { return "Ryozuki"; } }
-        public override string Description { get { return "A PvP plugin with MMR, ranks and stats"; } }
-        public override Version Version { get { return new Version(1, 0, 0); } }
+        public override string Description { get { return "A PvP plugin with ladder and ranks system"; } }
+        public override Version Version { get { return new Version(1, 0, 1); } }
         #endregion
-
-        /*  TODO:
-         * Change rank if mmr is higher or lower than actual rank mmr limit
-         * Add config
-         */
 
         public TerraPvP(Main game) : base(game)
         {
@@ -54,9 +49,9 @@ namespace TerraPvP
 
             LoadConfig();
 
-            checkQTimer.Elapsed += new ElapsedEventHandler(timer_elapsed);
-            checkQTimer.Interval = 10000;
-            checkQTimer.Enabled = true;
+            CheckQTimer.Elapsed += new ElapsedEventHandler(timer_elapsed);
+            CheckQTimer.Interval = 10000;
+            CheckQTimer.Enabled = true;
         }
         #endregion
 
@@ -112,24 +107,24 @@ namespace TerraPvP
 
             Db = new SqliteConnection("uri=file://" + Path.Combine(TShock.SavePath, "TerraPvP.sqlite") + ",Version=3");
 
-            ranklist = Config.ranklist;
+            ranklist = Config.RankList;
         }
 
         private void OnPostInitialize(EventArgs args)
         {
-            RankManager = new PRankManager(Db);
+            DbManager = new DBManager(Db);
         }
 
         void OnPlayerLogin(TShockAPI.Hooks.PlayerPostLoginEventArgs args)
         {
-            PRank playerrank = new PRank(args.Player.User.ID, args.Player.Name, 1500, Config.ranklist[0].name);
-            RankManager.addPlayer(playerrank);
+            PRank playerrank = new PRank(args.Player.User.ID, args.Player.Name, 1500, Config.RankList[0].name);
+            DbManager.addPlayer(playerrank);
         }
 
         private void OnTeamChange(object sender, GetDataHandlers.PlayerTeamEventArgs args)
         {
             var ply = TShock.Players[args.PlayerId];
-            foreach (PVPDuel duel in pvpduel)
+            foreach (PVPFight duel in PvPFights)
             {
                 if (duel.User1.UserID == ply.User.ID || duel.User2.UserID == ply.User.ID)
                 {
@@ -144,7 +139,7 @@ namespace TerraPvP
         {
             var ply = TShock.Players[args.PlayerId];
 
-            foreach (PVPDuel duel in pvpduel)
+            foreach (PVPFight duel in PvPFights)
             {
                 if (duel.User1.UserID == ply.User.ID || duel.User2.UserID == ply.User.ID)
                 {
@@ -158,11 +153,11 @@ namespace TerraPvP
 
         private void OnCommand(TShockAPI.Hooks.PlayerCommandEventArgs args)
         {
-            foreach (PVPDuel duel in pvpduel)
+            foreach (PVPFight duel in PvPFights)
             {
                 if(duel.User1.UserID == args.Player.User.ID || duel.User2.UserID == args.Player.User.ID)
                 {
-                    foreach (string command in Config.banned_commands)
+                    foreach (string command in Config.BannedCommands)
                     {
                         if(args.CommandName == command)
                         {
@@ -177,50 +172,50 @@ namespace TerraPvP
         private void onPlayerDeath(object sender, GetDataHandlers.KillMeEventArgs args)
         {
             var ply = TShock.Players[args.PlayerId];
-            for (var i = 0; i < pvpduel.Count; i++)
+            for (var i = 0; i < PvPFights.Count; i++)
             {
-                if (pvpduel[i].User1.UserID == ply.User.ID)
+                if (PvPFights[i].User1.UserID == ply.User.ID)
                 {
                     Random rnd = new Random();
 
-                    pvpduel[i].SetWinner(pvpduel[i].User2);
-                    pvpduel[i].SetLoser(pvpduel[i].User1);
-                    pvpduel[i].SetFinished(true);
+                    PvPFights[i].SetWinner(PvPFights[i].User2);
+                    PvPFights[i].SetLoser(PvPFights[i].User1);
+                    PvPFights[i].SetFinished(true);
 
-                    RankManager.updatePlayer(pvpduel[i].User1);
-                    RankManager.updatePlayer(pvpduel[i].User2);
+                    DbManager.updatePlayer(PvPFights[i].User1);
+                    DbManager.updatePlayer(PvPFights[i].User2);
 
-                    pvpduel.RemoveAt(i);
+                    PvPFights.RemoveAt(i);
                 }
-                else if (pvpduel[i].User2.UserID == ply.User.ID)
+                else if (PvPFights[i].User2.UserID == ply.User.ID)
                 {
                     Random rnd = new Random();
 
-                    pvpduel[i].SetWinner(pvpduel[i].User1);
-                    pvpduel[i].SetLoser(pvpduel[i].User2);
-                    pvpduel[i].SetFinished(true);
+                    PvPFights[i].SetWinner(PvPFights[i].User1);
+                    PvPFights[i].SetLoser(PvPFights[i].User2);
+                    PvPFights[i].SetFinished(true);
 
-                    RankManager.updatePlayer(pvpduel[i].User1);
-                    RankManager.updatePlayer(pvpduel[i].User2);
+                    DbManager.updatePlayer(PvPFights[i].User1);
+                    DbManager.updatePlayer(PvPFights[i].User2);
 
-                    pvpduel.RemoveAt(i);
+                    PvPFights.RemoveAt(i);
                 }
             }
         }
 
         private void timer_elapsed(object source, ElapsedEventArgs e)
         {
-            checkQTimer.Stop();
+            CheckQTimer.Stop();
             _checkqeue();
-            checkQTimer.Start();
+            CheckQTimer.Start();
         }
 
         void topTen(CommandArgs e)
         {
-            RankManager.topTen();
+            DbManager.topTen();
             int i = 1;
             e.Player.SendSuccessMessage("[TerraPvP] Top 10 ladder:");
-            foreach (PRank player in RankManager.topten)
+            foreach (PRank player in DbManager.topten)
             {
                 e.Player.SendSuccessMessage(i + ". Name: " + player.Name + " Rank: " + player.Rank + " MMR: " + player.MMR);
                 i++;
@@ -230,7 +225,7 @@ namespace TerraPvP
         void listArenas(CommandArgs e)
         {
             StringBuilder arena_list = new StringBuilder();
-            foreach (Arena arena in RankManager.Arenas)
+            foreach (Arena arena in DbManager.Arenas)
             {
                 arena_list.Append(" " + arena.regionName);
             }
@@ -248,12 +243,12 @@ namespace TerraPvP
         {
             string[] args = e.Parameters.ToArray();
             bool exist = false;
-            foreach(Arena arena in RankManager.Arenas)
+            foreach(Arena arena in DbManager.Arenas)
             {
                 if(args[0] == arena.regionName)
                 {
                     exist = true;
-                    RankManager.delArena(arena);
+                    DbManager.delArena(arena);
                     break;
                 }
             }
@@ -298,7 +293,7 @@ namespace TerraPvP
                     }
                     else
                     {
-                        RankManager.addArena(arena);
+                        DbManager.addArena(arena);
                         e.Player.SendSuccessMessage("[TerraPvP] Succesfully saved arena '" + args[0] + "'");
                     }
                 }
@@ -361,18 +356,18 @@ namespace TerraPvP
             int mmr = 0;
             string rank = "";
 
-            for (int i = 0; i < RankManager.pranks.Count; i++)
+            for (int i = 0; i < DbManager.pranks.Count; i++)
             {
-                if (RankManager.pranks[i].UserID == e.Player.User.ID)
+                if (DbManager.pranks[i].UserID == e.Player.User.ID)
                 {
-                    mmr = RankManager.pranks[i].MMR;
-                    rank = RankManager.pranks[i].Rank;
+                    mmr = DbManager.pranks[i].MMR;
+                    rank = DbManager.pranks[i].Rank;
                 }
 
             }
             PRank player = new PRank(e.Player.User.ID, e.Player.Name, mmr, rank);
             bool already_in_qeue = false;
-            foreach(PRank playerr in usersinqeue)
+            foreach(PRank playerr in UsersInQeue)
             {
                 if(playerr.UserID == e.Player.User.ID)
                 {
@@ -386,28 +381,28 @@ namespace TerraPvP
             }
             else
             {
-                usersinqeue.Add(player);
+                UsersInQeue.Add(player);
                 e.Player.SendSuccessMessage("[TerraPvP]  You entered the qeue succesfully");
             }
         }
 
         void _checkqeue()
         {
-            for (int i = 0; i < usersinqeue.Count; i++)
+            for (int i = 0; i < UsersInQeue.Count; i++)
             {
-                for (int ii = 0; ii < usersinqeue.Count; ii++)
+                for (int ii = 0; ii < UsersInQeue.Count; ii++)
                 {
-                    if(usersinqeue[i].UserID != usersinqeue[ii].UserID)
+                    if(UsersInQeue[i].UserID != UsersInQeue[ii].UserID)
                     {
-                        if (usersinqeue[ii].MMR >= usersinqeue[i].MMR - Config.MaxMMRDifference && usersinqeue[ii].MMR <= usersinqeue[i].MMR + Config.MaxMMRDifference)
+                        if (UsersInQeue[ii].MMR >= UsersInQeue[i].MMR - Config.MaxMMRDifference && UsersInQeue[ii].MMR <= UsersInQeue[i].MMR + Config.MaxMMRDifference)
                         {
                             try
                             {
                                 //add them to a arena
-                                PVPDuel duel = new PVPDuel(usersinqeue[i], usersinqeue[ii]);
+                                PVPFight duel = new PVPFight(UsersInQeue[i], UsersInQeue[ii]);
                                 if (duel.creationSucces)
                                 {
-                                    pvpduel.Add(duel);
+                                    PvPFights.Add(duel);
                                 }
                                 else
                                 {
@@ -415,13 +410,13 @@ namespace TerraPvP
                                 }
                                 
                                 //delete them from qeue list
-                                int userid = usersinqeue[ii].UserID;
-                                usersinqeue.RemoveAt(i);
-                                for (int o = 0; o < usersinqeue.Count; o++)
+                                int userid = UsersInQeue[ii].UserID;
+                                UsersInQeue.RemoveAt(i);
+                                for (int o = 0; o < UsersInQeue.Count; o++)
                                 {
-                                    if (usersinqeue[o].UserID == userid)
+                                    if (UsersInQeue[o].UserID == userid)
                                     {
-                                        usersinqeue.RemoveAt(o);
+                                        UsersInQeue.RemoveAt(o);
                                     }
                                 }
                             }
@@ -443,12 +438,12 @@ namespace TerraPvP
 
             if (e.Parameters.Count == 0)
             {
-                for (int i = 0; i < RankManager.pranks.Count; i++)
+                for (int i = 0; i < DbManager.pranks.Count; i++)
                 {
-                    if (RankManager.pranks[i].UserID == e.Player.User.ID)
+                    if (DbManager.pranks[i].UserID == e.Player.User.ID)
                     {
-                        mmr = RankManager.pranks[i].MMR;
-                        rank = RankManager.pranks[i].Rank;
+                        mmr = DbManager.pranks[i].MMR;
+                        rank = DbManager.pranks[i].Rank;
                     }
 
                 }
@@ -470,13 +465,13 @@ namespace TerraPvP
                     return;
                 }
 
-                for (int i = 0; i < RankManager.pranks.Count; i++)
+                for (int i = 0; i < DbManager.pranks.Count; i++)
                 {
-                    if (RankManager.pranks[i].UserID == playerid)
+                    if (DbManager.pranks[i].UserID == playerid)
                     {
-                        mmr = RankManager.pranks[i].MMR;
-                        rank = RankManager.pranks[i].Rank;
-                        e.Player.SendSuccessMessage("Stats for " + RankManager.pranks[i].Name);
+                        mmr = DbManager.pranks[i].MMR;
+                        rank = DbManager.pranks[i].Rank;
+                        e.Player.SendSuccessMessage("Stats for " + DbManager.pranks[i].Name);
                         e.Player.SendSuccessMessage("Rank: " + rank);
                         e.Player.SendSuccessMessage("MMR: " + mmr);
                     }

@@ -77,7 +77,7 @@
     <Compile Include="Arena.cs" />
     <Compile Include="ConfigFile.cs" />
     <Compile Include="PVPDuel.cs" />
-    <Compile Include="PRankManager.cs" />
+    <Compile Include="DBManager.cs" />
     <Compile Include="PRank.cs" />
     <Compile Include="TerraPvP.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

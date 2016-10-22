@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using System.Data;
 using TShockAPI.DB;
 using MySql.Data.MySqlClient;
-using TShockAPI;
 
 namespace TerraPvP
 {
-    public class PRankManager
+    public class DBManager
     {
         private IDbConnection db;
         public List<PRank> pranks = new List<PRank>();
@@ -15,7 +14,7 @@ namespace TerraPvP
         public List<Arena> Arenas = new List<Arena>();
         private bool exists = false;
 
-        public PRankManager(IDbConnection db)
+        public DBManager(IDbConnection db)
         {
             this.db = db;
 

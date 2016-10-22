@@ -39,8 +39,8 @@ namespace TerraPvP
                     }
                 }
 
-                TerraPvP.RankManager.updatePlayer(this);
-                foreach(PRank prank in TerraPvP.RankManager.pranks)
+                TerraPvP.DbManager.updatePlayer(this);
+                foreach(PRank prank in TerraPvP.DbManager.pranks)
                 {
                     if(prank.UserID == UserID)
                     {
