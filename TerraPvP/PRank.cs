@@ -15,15 +15,14 @@
             Rank = rank;
         }
 
-        public void updateRank(int mmr)
+        public void updateMMR(int mmr)
         {
             MMR = mmr;
         }
 
-        public void updateRank(int mmr, string rank)
+        public void checkRank()
         {
-            MMR = mmr;
-            Rank = rank;
+            //if mmr is bigger than x, update rank.. make a rank list config
         }
     }
 }

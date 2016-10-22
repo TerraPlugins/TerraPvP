@@ -69,9 +69,12 @@ namespace TerraPvP
         {
             ServerApi.Hooks.GameInitialize.Register(this, OnInitialize);
             ServerApi.Hooks.GamePostInitialize.Register(this, OnPostInitialize);
-            ServerApi.Hooks.NetGetData.Register(this, OnGetData);
             TShockAPI.Hooks.PlayerHooks.PlayerPostLogin += OnPlayerLogin;
-            checkQTimer.Elapsed += new ElapsedEventHandler(myEvent);
+            GetDataHandlers.PlayerTeam += OnTeamChange;
+            GetDataHandlers.TogglePvp += onPvPToggle;
+            GetDataHandlers.KillMe += onPlayerDeath;
+
+            checkQTimer.Elapsed += new ElapsedEventHandler(timer_elapsed);
             checkQTimer.Interval = 30000;
             checkQTimer.Enabled = true;
         }
@@ -83,8 +86,10 @@ namespace TerraPvP
             {
                 ServerApi.Hooks.GameInitialize.Deregister(this, OnInitialize);
                 ServerApi.Hooks.GamePostInitialize.Deregister(this, OnPostInitialize);
+                GetDataHandlers.PlayerTeam -= OnTeamChange;
+                GetDataHandlers.TogglePvp -= onPvPToggle;
+                GetDataHandlers.KillMe -= onPlayerDeath;
                 TShockAPI.Hooks.PlayerHooks.PlayerPostLogin -= OnPlayerLogin;
-                ServerApi.Hooks.NetGetData.Deregister(this, OnGetData);
             }
         }
 
@@ -99,10 +104,6 @@ namespace TerraPvP
             Commands.ChatCommands.Add(new Command("terrapvp.stats", getstats, "pvpstats")
             {
                 HelpText = "Usage: /pvpstats <name> or /pvpstats"
-            });
-            Commands.ChatCommands.Add(new Command("terrapvp.stats", testcommand, "testcommand")
-            {
-                HelpText = "Usage: /testcommand <name> or /testcommand"
             });
 
             Db = new SqliteConnection("uri=file://" + Path.Combine(TShock.SavePath, "terrapvp.sqlite") + ",Version=3");
@@ -119,73 +120,82 @@ namespace TerraPvP
             RankManager.addPlayer(playerrank);
         }
 
-        private void myEvent(object source, ElapsedEventArgs e)
+        private void OnTeamChange(object sender, GetDataHandlers.PlayerTeamEventArgs args)
         {
-            Console.WriteLine("timer called");
+            var ply = TShock.Players[args.PlayerId];
+            foreach (PVPDuel duel in pvpduel)
+            {
+                if (duel.User1.UserID == ply.User.ID || duel.User2.UserID == ply.User.ID)
+                {
+                    ply.SetTeam(0);
+                    ply.SendWarningMessage("You can't change team right now!");
+                    args.Handled = true;
+                }
+            }
+        }
+
+        private void onPvPToggle(object sender, GetDataHandlers.TogglePvpEventArgs args)
+        {
+            var ply = TShock.Players[args.PlayerId];
+
+            foreach (PVPDuel duel in pvpduel)
+            {
+                if (duel.User1.UserID == ply.User.ID || duel.User2.UserID == ply.User.ID)
+                {
+                    Main.player[ply.Index].hostile = true;
+                    NetMessage.SendData((int)PacketTypes.TogglePvp, -1, -1, "", ply.Index);
+                    ply.SendWarningMessage("Your PvP has been forced on, don't try and turn it off!");
+                    args.Handled = true;
+                }
+            }
+        }
+
+        private void onPlayerDeath(object sender, GetDataHandlers.KillMeEventArgs args)
+        {
+            var ply = TShock.Players[args.PlayerId];
+            for (var i = 0; i < pvpduel.Count; i++)
+            {
+                if (pvpduel[i].User1.UserID == ply.User.ID)
+                {
+                    Random rnd = new Random();
+
+                    pvpduel[i].SetWinner(pvpduel[i].User2);
+                    pvpduel[i].SetLoser(pvpduel[i].User1);
+                    pvpduel[i].SetFinished(true);
+
+                    RankManager.updatePlayer(pvpduel[i].User1);
+                    RankManager.updatePlayer(pvpduel[i].User2);
+
+                    pvpduel.RemoveAt(i);
+                }
+                else if (pvpduel[i].User2.UserID == ply.User.ID)
+                {
+                    Random rnd = new Random();
+
+                    pvpduel[i].SetWinner(pvpduel[i].User1);
+                    pvpduel[i].SetLoser(pvpduel[i].User2);
+                    pvpduel[i].SetFinished(true);
+
+                    RankManager.updatePlayer(pvpduel[i].User1);
+                    RankManager.updatePlayer(pvpduel[i].User2);
+
+                    pvpduel.RemoveAt(i);
+                }
+            }
+        }
+
+        private void timer_elapsed(object source, ElapsedEventArgs e)
+        {
             checkQTimer.Stop();
             _checkqeue();
             checkQTimer.Start();
-        }
-
-        // ????????????????
-        void OnGetData(GetDataEventArgs e)
-        {
-            int killerid = 0;
-            int deathplayerid;
-            if (e.MsgID == PacketTypes.PlayerDamage)
-            {
-                killerid = e.Msg.reader.ReadSByte();
-            }
-            if (e.MsgID == PacketTypes.PlayerKillMe)
-            {
-                deathplayerid = e.Msg.reader.ReadSByte();
-
-                for(int i = 0; i < pvpduel.Count; i++)
-                {
-                    if(pvpduel[i].User1.UserID == deathplayerid)
-                    {
-                        if (pvpduel[i].User2.UserID == killerid)
-                        {
-                            pvpduel[i].SetWinner(pvpduel[i].User2);
-                            pvpduel[i].SetLoser(pvpduel[i].User1);
-                            pvpduel[i].SetFinished(true);
-                        }
-                    }
-                    else if (pvpduel[i].User2.UserID == deathplayerid)
-                    {
-                        if (pvpduel[i].User1.UserID == killerid)
-                        {
-                            pvpduel[i].SetWinner(pvpduel[i].User1);
-                            pvpduel[i].SetLoser(pvpduel[i].User2);
-                            pvpduel[i].SetFinished(true);
-                        }
-                    }
-                }
-            }
-            if(e.MsgID == PacketTypes.TogglePvp || e.MsgID == PacketTypes.PlayerTeam || e.MsgID == PacketTypes.Teleport)
-            {
-                for(int i = 0; i < pvpduel.Count; i++)
-                {
-                    if(pvpduel[i].User1.UserID == e.Msg.whoAmI || pvpduel[i].User2.UserID == e.Msg.whoAmI)
-                    {
-                        e.Handled = true;
-                    }
-                }
-            }
-        }
-
-        void testcommand(CommandArgs e)
-        {
-            Main.player[e.Player.Index].hostile = true;
-            NetMessage.SendData((int)PacketTypes.TogglePvp, -1, -1, "", e.Player.Index);
-            TShock.Players[e.Player.Index].TPAllow = false;
-            TShock.Players[e.Player.Index].TpLock = true;
         }
 
         void pvpqeue(CommandArgs e)
         {
             int mmr = 0;
             string rank = "";
+
             for (int i = 0; i < RankManager.pranks.Count; i++)
             {
                 if (RankManager.pranks[i].UserID == e.Player.User.ID)
@@ -202,36 +212,37 @@ namespace TerraPvP
 
         void _checkqeue()
         {
-            Console.WriteLine("checkqeue called");
             for (int i = 0; i < usersinqeue.Count; i++)
             {
                 for (int ii = 0; ii < usersinqeue.Count; ii++)
                 {
                     // Check if difference of mmr is not more than 100 or lower than 100
-                    if (usersinqeue[i].MMR - 100 >= usersinqeue[ii].MMR && usersinqeue[i].MMR + 100 <= usersinqeue[ii].MMR)
+                    if(usersinqeue[i].UserID != usersinqeue[ii].UserID)
                     {
-                        try
+                        if (usersinqeue[ii].MMR >= usersinqeue[i].MMR - 100 && usersinqeue[ii].MMR <= usersinqeue[i].MMR + 100)
                         {
-                            //add them to a arena
-                            PVPDuel duel = new PVPDuel(usersinqeue[i], usersinqeue[ii]);
-                            pvpduel.Add(duel);
-                            Console.WriteLine("duel added");
-                            //delete them from qeue list
-                            usersinqeue.RemoveAt(i);
-                            int userid = usersinqeue[ii].UserID;
-                            for (int o = 0; o < usersinqeue.Count; o++)
+                            try
                             {
-                                if (usersinqeue[o].UserID == userid)
+                                //add them to a arena
+                                PVPDuel duel = new PVPDuel(usersinqeue[i], usersinqeue[ii]);
+                                pvpduel.Add(duel);
+                                //delete them from qeue list
+                                int userid = usersinqeue[ii].UserID;
+                                usersinqeue.RemoveAt(i);
+                                for (int o = 0; o < usersinqeue.Count; o++)
                                 {
-                                    usersinqeue.RemoveAt(o);
+                                    if (usersinqeue[o].UserID == userid)
+                                    {
+                                        usersinqeue.RemoveAt(o);
+                                    }
                                 }
                             }
+                            catch (Exception e)
+                            {
+                                Console.WriteLine(e.ToString());
+                            }
+
                         }
-                        catch(Exception e)
-                        {
-                            Console.WriteLine(e.ToString());
-                        }
-                        
                     }
                 }
             }

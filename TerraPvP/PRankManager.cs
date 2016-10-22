@@ -67,23 +67,24 @@ namespace TerraPvP
 
         public void updatePlayer(PRank player)
         {
-            db.Query("UPDATE UserRanks SET MMR = @0, SET Rank = '@1' WHERE UserID = @2",
+            try
+            {
+                db.Query("UPDATE UserRanks SET MMR=@0, Rank=@1 WHERE UserID=@2",
                 player.MMR,
                 player.Rank,
                 player.UserID
                 );
-            for(int i = 0; i < pranks.Count; i++)
+                for (int i = 0; i < pranks.Count; i++)
+                {
+                    if (pranks[i].UserID == player.UserID)
+                    {
+                        pranks[i].updateMMR(player.MMR);
+                    }
+                }
+            }
+            catch(Exception e)
             {
-                if (pranks[i].UserID == player.UserID && pranks[i].Rank != player.Rank)
-                {
-
-                    pranks[i].updateRank(player.MMR, player.Rank);
-                }
-                else if (pranks[i].UserID == player.UserID)
-                {
-                    pranks[i].updateRank(player.MMR);
-                }
-                
+                Console.WriteLine(e.StackTrace);
             }
         }
     }
