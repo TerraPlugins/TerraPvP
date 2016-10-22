@@ -31,32 +31,11 @@ namespace TerraPvP
          * Database
          * Player list
          * Duel list
+         * Duel system
          * 
          * TODO:
          * Add arena regions system
-         * Know if some region is free, if so teleport them and start pvp, save their info for when they finish, give mmr to winner, delete mmr from loser, change ranks if needed
          * Change rank if mmr is higher or lower than actual rank mmr limit
-         * You should teleport the dueling players somewhere. 
-            And not allow other players to TP to them so they don't interfere. 
-            (also don't allow the dueling players to teleport away, or even use certain commands which can help them cheat)
-
-            ryozuki [1:05 PM]  
-            yeah
-
-            [1:05]  
-            i'm not there still
-
-            patrikk [1:05 PM]  
-            Also don't allow the dueling players to get in a party. Because then they could "mess up" the thing, by being in same party.
-
-            ryozuki [1:05 PM]  
-            how to force pvp?
-
-            [1:05]  
-            true
-
-            patrikk [1:06 PM]  
-            Check PvpToggle plugin.
          */
 
         public TerraPvP(Main game) : base(game)
