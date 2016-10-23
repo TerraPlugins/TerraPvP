@@ -15,8 +15,8 @@ namespace TerraPvP
         public bool finished { get; set; }
         public bool creationSucces { get; set; }
         public string arenaName { get; set; }
-        private int player1index { get; set; }
-        private int player2index { get; set; }
+        private TSPlayer player1 { get; set; }
+        private TSPlayer player2 { get; set; }
 
         public ConfigFile Config = new ConfigFile();
 
@@ -32,22 +32,22 @@ namespace TerraPvP
                         creationSucces = true;
                         User1 = user1;
                         User2 = user2;
-                        player1index = TShock.Players.FirstOrDefault(p => p?.Active == true && p.IsLoggedIn && p.User.ID == User1.UserID).Index;
-                        player2index = TShock.Players.FirstOrDefault(p => p?.Active == true && p.IsLoggedIn && p.User.ID == User2.UserID).Index;
+                        player1 = TShock.Players.FirstOrDefault(p => p?.Active == true && p.IsLoggedIn && p.User.ID == User1.UserID);
+                        player2 = TShock.Players.FirstOrDefault(p => p?.Active == true && p.IsLoggedIn && p.User.ID == User2.UserID);
 
                         //Put them on team 0
-                        TShock.Players[player1index].SetTeam(0);
-                        TShock.Players[player2index].SetTeam(0);
+                        player1.SetTeam(0);
+                        player2.SetTeam(0);
 
                         //Heal them
-                        TShock.Players[player1index].Heal();
-                        TShock.Players[player2index].Heal();
+                        player1.Heal();
+                        player2.Heal();
 
                         //Enable pvp on them
-                        Main.player[player1index].hostile = true;
-                        Main.player[player2index].hostile = true;
-                        NetMessage.SendData((int)PacketTypes.TogglePvp, -1, -1, "", player1index);
-                        NetMessage.SendData((int)PacketTypes.TogglePvp, -1, -1, "", player2index);
+                        Main.player[player1.Index].hostile = true;
+                        Main.player[player2.Index].hostile = true;
+                        NetMessage.SendData((int)PacketTypes.TogglePvp, -1, -1, "", player1.Index);
+                        NetMessage.SendData((int)PacketTypes.TogglePvp, -1, -1, "", player2.Index);
 
                         //Send broadcast
                         Color color = new Color(96, 178, 233);
@@ -55,8 +55,8 @@ namespace TerraPvP
 
                         arena.someoneFighting = true;
                         // Tele to a arena
-                        TShock.Players[player1index].Teleport(arena.spawn1_x, arena.spawn1_y);
-                        TShock.Players[player2index].Teleport(arena.spawn2_x, arena.spawn2_y);
+                        player1.Teleport(arena.spawn1_x, arena.spawn1_y);
+                        player2.Teleport(arena.spawn2_x, arena.spawn2_y);
                         arenaName = arena.regionName;
                         break;
                     }
@@ -91,15 +91,15 @@ namespace TerraPvP
             if (finished)
             {
                 //Disable pvp on them
-                Main.player[player1index].hostile = false;
-                Main.player[player2index].hostile = false;
-                NetMessage.SendData((int)PacketTypes.TogglePvp, -1, -1, "", player1index);
-                NetMessage.SendData((int)PacketTypes.TogglePvp, -1, -1, "", player2index);
+                Main.player[player1.Index].hostile = false;
+                Main.player[player2.Index].hostile = false;
+                NetMessage.SendData((int)PacketTypes.TogglePvp, -1, -1, "", player1.Index);
+                NetMessage.SendData((int)PacketTypes.TogglePvp, -1, -1, "", player2.Index);
 
                 Color color = new Color(126, 226, 126);
                 TShock.Utils.Broadcast("[TerraPvP] " + Winner.Name + " ("+ Winner.Rank+ ", " + Winner.MMR + ")" + " won vs " + Loser.Name + " (" + Loser.Rank + ", " + Loser.MMR + ")", color);
-                TShock.Players[player1index].SendInfoMessage(Config.onPvPFinishMessage);
-                TShock.Players[player2index].SendInfoMessage(Config.onPvPFinishMessage);
+                player1.SendInfoMessage(Config.onPvPFinishMessage);
+                player2.SendInfoMessage(Config.onPvPFinishMessage);
 
                 foreach(Arena arena in TerraPvP.DbManager.Arenas)
                 {

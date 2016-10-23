@@ -28,7 +28,7 @@ namespace TerraPvP
         public override string Name { get { return "TerraPvP"; } }
         public override string Author { get { return "Ryozuki"; } }
         public override string Description { get { return "A PvP plugin with ladder and ranks system"; } }
-        public override Version Version { get { return new Version(1, 0, 1); } }
+        public override Version Version { get { return new Version(1, 0, 2); } }
         #endregion
 
         public TerraPvP(Main game) : base(game)
@@ -124,12 +124,18 @@ namespace TerraPvP
         private void OnTeamChange(object sender, GetDataHandlers.PlayerTeamEventArgs args)
         {
             var ply = TShock.Players[args.PlayerId];
+
+            if(ply == null)
+            {
+                return;
+            }
+
             foreach (PVPFight duel in PvPFights)
             {
                 if (duel.User1.UserID == ply.User.ID || duel.User2.UserID == ply.User.ID)
                 {
                     ply.SetTeam(0);
-                    ply.SendWarningMessage("You can't change team right now!");
+                    ply.SendWarningMessage("[TerraPvP] You can't change team right now!");
                     args.Handled = true;
                 }
             }
@@ -139,13 +145,18 @@ namespace TerraPvP
         {
             var ply = TShock.Players[args.PlayerId];
 
+            if (ply == null)
+            {
+                return;
+            }
+
             foreach (PVPFight duel in PvPFights)
             {
                 if (duel.User1.UserID == ply.User.ID || duel.User2.UserID == ply.User.ID)
                 {
                     Main.player[ply.Index].hostile = true;
                     NetMessage.SendData((int)PacketTypes.TogglePvp, -1, -1, "", ply.Index);
-                    ply.SendWarningMessage("Your PvP has been forced on, don't try and turn it off!");
+                    ply.SendWarningMessage("[TerraPvP] Your PvP has been forced on, don't try and turn it off!");
                     args.Handled = true;
                 }
             }
@@ -161,7 +172,7 @@ namespace TerraPvP
                     {
                         if(args.CommandName == command)
                         {
-                            args.Player.SendErrorMessage("You can't use that command right now!");
+                            args.Player.SendErrorMessage("[TerraPvP] You can't use that command right now!");
                             args.Handled = true;
                         }
                     }
@@ -172,6 +183,12 @@ namespace TerraPvP
         private void onPlayerDeath(object sender, GetDataHandlers.KillMeEventArgs args)
         {
             var ply = TShock.Players[args.PlayerId];
+
+            if (ply == null)
+            {
+                return;
+            }
+
             for (var i = 0; i < PvPFights.Count; i++)
             {
                 if (PvPFights[i].User1.UserID == ply.User.ID)
@@ -353,6 +370,9 @@ namespace TerraPvP
 
         void pvpqeue(CommandArgs e)
         {
+            if (e.Player == null)
+                return;
+
             int mmr = 0;
             string rank = "";
 
@@ -438,6 +458,9 @@ namespace TerraPvP
 
             if (e.Parameters.Count == 0)
             {
+                if (e.Player == null)
+                    return;
+
                 for (int i = 0; i < DbManager.pranks.Count; i++)
                 {
                     if (DbManager.pranks[i].UserID == e.Player.User.ID)
@@ -453,11 +476,26 @@ namespace TerraPvP
             }
             else
             {
-                string args = String.Join(" ", e.Parameters.ToArray());
+                string plrName = String.Join(" ", e.Parameters.ToArray());
+
+                var players = TShock.Utils.FindPlayer(plrName);
+
+                if (players.Count == 0)
+                {
+                    e.Player.SendErrorMessage("Invalid player!");
+                    return;
+                } 
+                else if (players.Count > 1)
+                {
+                    e.Player.SendErrorMessage("More than one player matched!");
+                    return;
+                }
+                    
+
                 int playerid;
                 try
                 {
-                    playerid = TShock.Users.GetUserByName(args).ID;
+                    playerid = TShock.Users.GetUserByName(plrName).ID;
                 }
                 catch
                 {
@@ -471,7 +509,8 @@ namespace TerraPvP
                     {
                         mmr = DbManager.pranks[i].MMR;
                         rank = DbManager.pranks[i].Rank;
-                        e.Player.SendSuccessMessage("Stats for " + DbManager.pranks[i].Name);
+                        e.Player.SendSuccessMessage("[TerraPvP] Stats:");
+                        e.Player.SendSuccessMessage("Name: " + DbManager.pranks[i].Name);
                         e.Player.SendSuccessMessage("Rank: " + rank);
                         e.Player.SendSuccessMessage("MMR: " + mmr);
                     }
