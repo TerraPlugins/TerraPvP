@@ -39,6 +39,10 @@ namespace TerraPvP
                         TShock.Players[player1index].SetTeam(0);
                         TShock.Players[player2index].SetTeam(0);
 
+                        //Heal them
+                        TShock.Players[player1index].Heal();
+                        TShock.Players[player2index].Heal();
+
                         //Enable pvp on them
                         Main.player[player1index].hostile = true;
                         Main.player[player2index].hostile = true;

@@ -63,7 +63,7 @@ namespace TerraPvP
 
         public void addArena(Arena arena)
         {
-            db.Query("INSERT INTO Arenas (Region, spawn1_x, spawn1_y, spawn2_x, spawn2_x) VALUES (@0, @1, @2, @3, @4)",
+            db.Query("INSERT INTO Arenas (Region, spawn1_x, spawn1_y, spawn2_x, spawn2_y) VALUES (@0, @1, @2, @3, @4)",
                 arena.regionName,
                 arena.spawn1_x,
                 arena.spawn1_y,
@@ -99,6 +99,7 @@ namespace TerraPvP
         {
             try
             {
+                topten.RemoveRange(0, topten.Count);
                 using (QueryResult result = db.QueryReader("SELECT * FROM UserRanks ORDER BY MMR DESC LIMIT 10"))
                 {
                     while (result.Read())
