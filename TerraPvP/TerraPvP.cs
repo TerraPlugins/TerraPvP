@@ -373,6 +373,9 @@ namespace TerraPvP
             if (e.Player == null)
                 return;
 
+            if (!e.Player.IsLoggedIn)
+                return;
+
             int mmr = 0;
             string rank = "";
 
