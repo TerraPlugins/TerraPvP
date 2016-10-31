@@ -29,10 +29,10 @@ namespace TerraPvP
             sqlCreator.EnsureTableStructure(new SqlTable("Arenas",
                 new SqlColumn("ID", MySqlDbType.Int32) { Primary = true, AutoIncrement = true },
                 new SqlColumn("Region", MySqlDbType.Text) { Unique = true },
-                new SqlColumn("spawn1_x", MySqlDbType.Float),
-                new SqlColumn("spawn1_y", MySqlDbType.Float),
-                new SqlColumn("spawn2_x", MySqlDbType.Float),
-                new SqlColumn("spawn2_y", MySqlDbType.Float)
+                new SqlColumn("spawn1_x", MySqlDbType.Int32),
+                new SqlColumn("spawn1_y", MySqlDbType.Int32),
+                new SqlColumn("spawn2_x", MySqlDbType.Int32),
+                new SqlColumn("spawn2_y", MySqlDbType.Int32)
                 ));
 
             using (QueryResult result = db.QueryReader("SELECT * FROM Arenas"))
@@ -41,10 +41,10 @@ namespace TerraPvP
                 {
                     Arenas.Add(new Arena(
                         result.Get<string>("Region"),
-                        result.Get<float>("spawn1_x"),
-                        result.Get<float>("spawn1_y"),
-                        result.Get<float>("spawn2_x"),
-                        result.Get<float>("spawn2_y")));
+                        result.Get<int>("spawn1_x"),
+                        result.Get<int>("spawn1_y"),
+                        result.Get<int>("spawn2_x"),
+                        result.Get<int>("spawn2_y")));
                 }
             }
 

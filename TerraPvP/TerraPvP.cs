@@ -28,7 +28,7 @@ namespace TerraPvP
         public override string Name { get { return "TerraPvP"; } }
         public override string Author { get { return "Ryozuki"; } }
         public override string Description { get { return "A PvP plugin with ladder and ranks system"; } }
-        public override Version Version { get { return new Version(1, 0, 2); } }
+        public override Version Version { get { return new Version(1, 0, 3); } }
         #endregion
 
         public TerraPvP(Main game) : base(game)
@@ -71,38 +71,38 @@ namespace TerraPvP
 
         void OnInitialize(EventArgs args)
         {
-            Commands.ChatCommands.Add(new Command("terrapvp.qeue", pvpqeue, "pvpqeue")
+            Commands.ChatCommands.Add(new Command("terrapvp.qeue", pvpqeue, "tqeue")
             {
-                HelpText = "Usage: /pvpqeue"
+                HelpText = "Usage: /tqeue"
             });
-            Commands.ChatCommands.Add(new Command("terrapvp.stats", getstats, "pvpstats")
+            Commands.ChatCommands.Add(new Command("terrapvp.stats", getstats, "tstats")
             {
-                HelpText = "Usage: /pvpstats <name> or /pvpstats"
+                HelpText = "Usage: /tstats <name> or /tstats"
             });
-            Commands.ChatCommands.Add(new Command("terrapvp.arena", createArena, "createarena")
+            Commands.ChatCommands.Add(new Command("terrapvp.arena", createArena, "tcreate")
             {
-                HelpText = "Usage: /createarena <arena name>"
+                HelpText = "Usage: /tcreate <arena name>"
             });
-            Commands.ChatCommands.Add(new Command("terrapvp.arena", setArenaSpawn, "setarenaspawn")
+            Commands.ChatCommands.Add(new Command("terrapvp.arena", setArenaSpawn, "tsetspawn")
             {
-                HelpText = "Usage: /setarenaspawn <arena name> <1 / 2>"
+                HelpText = "Usage: /tsetspawn <arena name> <1 / 2>"
             });
-            Commands.ChatCommands.Add(new Command("terrapvp.arena", saveArena, "savearena")
+            Commands.ChatCommands.Add(new Command("terrapvp.arena", saveArena, "tsave")
             {
-                HelpText = "Usage: /savearena <arena name>"
+                HelpText = "Usage: /tsave <arena name>"
             });
 
-            Commands.ChatCommands.Add(new Command("terrapvp.list", listArenas, "listarenas")
+            Commands.ChatCommands.Add(new Command("terrapvp.list", listArenas, "tlist")
             {
-                HelpText = "Usage: /listarenas"
+                HelpText = "Usage: /tlist"
             });
-            Commands.ChatCommands.Add(new Command("terrapvp.arena", delArena, "delarena")
+            Commands.ChatCommands.Add(new Command("terrapvp.arena", delArena, "tdel")
             {
-                HelpText = "Usage: /delarena <arena name>"
+                HelpText = "Usage: /tdel <arena name>"
             });
-            Commands.ChatCommands.Add(new Command("terrapvp.stats", topTen, "topten")
+            Commands.ChatCommands.Add(new Command("terrapvp.stats", topTen, "ttopten")
             {
-                HelpText = "Usage: /topten"
+                HelpText = "Usage: /ttopten"
             });
 
             Db = new SqliteConnection("uri=file://" + Path.Combine(TShock.SavePath, "TerraPvP.sqlite") + ",Version=3");
@@ -266,6 +266,7 @@ namespace TerraPvP
                 {
                     exist = true;
                     DbManager.delArena(arena);
+                    e.Player.SendSuccessMessage("Arena deleted.");
                     break;
                 }
             }
@@ -332,8 +333,8 @@ namespace TerraPvP
             {
                 if(arena.regionName == args[0].ToString() && args[1] == "1")
                 {
-                    arena.spawn1_x = e.Player.X;
-                    arena.spawn1_y = e.Player.Y;
+                    arena.spawn1_x = e.Player.TileX * 16;
+                    arena.spawn1_y = e.Player.TileY * 16;
                     if(float.IsNaN(arena.spawn1_y) || float.IsNaN(arena.spawn1_y))
                     {
                         e.Player.SendErrorMessage("[TerraPvP]  There was an error, please try again.");
@@ -347,8 +348,8 @@ namespace TerraPvP
 
                 if (arena.regionName == args[0].ToString() && args[1] == "2")
                 {
-                    arena.spawn2_x = e.Player.X;
-                    arena.spawn2_y = e.Player.Y;
+                    arena.spawn2_x = e.Player.TileX * 16;
+                    arena.spawn2_y = e.Player.TileY * 16;
                     exist = true;
                     if (float.IsNaN(arena.spawn2_y) || float.IsNaN(arena.spawn2_x))
                     {

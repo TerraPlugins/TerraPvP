@@ -10,10 +10,10 @@ namespace TerraPvP
     public class Arena
     {
         public string regionName { get; set; }
-        public float spawn1_x { get; set; }
-        public float spawn1_y { get; set; }
-        public float spawn2_x { get; set; }
-        public float spawn2_y { get; set; }
+        public int spawn1_x { get; set; }
+        public int spawn1_y { get; set; }
+        public int spawn2_x { get; set; }
+        public int spawn2_y { get; set; }
         public TShockAPI.DB.Region Region { get; set; }
         public bool someoneFighting { get; set; }
 
@@ -22,7 +22,7 @@ namespace TerraPvP
             regionName = RegionName;
         }
 
-        public Arena(string RegionName, float Spawn1_x, float Spawn1_y, float Spawn2_x, float Spawn2_y)
+        public Arena(string RegionName, int Spawn1_x, int Spawn1_y, int Spawn2_x, int Spawn2_y)
         {
             regionName = RegionName;
             spawn1_x = Spawn1_x;
