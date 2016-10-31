@@ -44,7 +44,7 @@ namespace TerraPvP
                         result.Get<float>("spawn1_x"),
                         result.Get<float>("spawn1_y"),
                         result.Get<float>("spawn2_x"),
-                        result.Get<float>("spawn2_x")));
+                        result.Get<float>("spawn2_y")));
                 }
             }
 
