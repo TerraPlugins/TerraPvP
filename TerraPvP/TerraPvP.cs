@@ -280,7 +280,7 @@ namespace TerraPvP
         {
             if (e.Parameters.Count == 0)
             {
-                e.Player.SendErrorMessage("Invalid syntax! Proper syntax: {0}createarena <arena name>", Commands.Specifier);
+                e.Player.SendErrorMessage("Invalid syntax! Proper syntax: {0}tcreate <arena name>", Commands.Specifier);
                 return;
             }
 
@@ -295,7 +295,7 @@ namespace TerraPvP
         {
             if (e.Parameters.Count == 0)
             {
-                e.Player.SendErrorMessage("Invalid syntax! Proper syntax: {0}savearena <arena name>", Commands.Specifier);
+                e.Player.SendErrorMessage("Invalid syntax! Proper syntax: {0}tsave <arena name>", Commands.Specifier);
                 return;
             }
 
@@ -322,7 +322,7 @@ namespace TerraPvP
         {
             if (e.Parameters.Count == 0)
             {
-                e.Player.SendErrorMessage("Invalid syntax! Proper syntax: {0}setarenaspawn <region name> <1 / 2> (First use set 1)", Commands.Specifier);
+                e.Player.SendErrorMessage("Invalid syntax! Proper syntax: {0}tsetspawn <region name> <1 / 2> (First use set 1)", Commands.Specifier);
                 return;
             }
 
