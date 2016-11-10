@@ -28,7 +28,7 @@ namespace TerraPvP
         public override string Name { get { return "TerraPvP"; } }
         public override string Author { get { return "Ryozuki"; } }
         public override string Description { get { return "A PvP plugin with ladder and ranks system"; } }
-        public override Version Version { get { return new Version(1, 0, 3); } }
+        public override Version Version { get { return new Version(1, 0, 4); } }
         #endregion
 
         public TerraPvP(Main game) : base(game)
