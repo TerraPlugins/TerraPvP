@@ -117,6 +117,9 @@ namespace TerraPvP
 
         void OnPlayerLogin(TShockAPI.Hooks.PlayerPostLoginEventArgs args)
         {
+            if (args.Player == null)
+                return;
+
             PRank playerrank = new PRank(args.Player.User.ID, args.Player.Name, 1500, Config.RankList[0].name);
             DbManager.addPlayer(playerrank);
         }
@@ -164,6 +167,9 @@ namespace TerraPvP
 
         private void OnCommand(TShockAPI.Hooks.PlayerCommandEventArgs args)
         {
+            if (args.Player == null)
+                return;
+
             foreach (PVPFight duel in PvPFights)
             {
                 if(duel.User1.UserID == args.Player.User.ID || duel.User2.UserID == args.Player.User.ID)
@@ -229,6 +235,9 @@ namespace TerraPvP
 
         void topTen(CommandArgs e)
         {
+            if (e.Player == null)
+                return;
+
             DbManager.topTen();
             int i = 1;
             e.Player.SendSuccessMessage("[TerraPvP] Top 10 ladder:");
@@ -241,11 +250,16 @@ namespace TerraPvP
 
         void listArenas(CommandArgs e)
         {
+            if (e.Player == null)
+                return;
+
             StringBuilder arena_list = new StringBuilder();
+
             foreach (Arena arena in DbManager.Arenas)
             {
                 arena_list.Append(" " + arena.regionName);
             }
+
             if (!string.IsNullOrWhiteSpace(arena_list.ToString()))
             {
                 e.Player.SendSuccessMessage("[TerraPvP]  Arenas:" + arena_list.ToString());
@@ -258,6 +272,9 @@ namespace TerraPvP
 
         void delArena(CommandArgs e)
         {
+            if (e.Player == null)
+                return;
+
             string[] args = e.Parameters.ToArray();
             bool exist = false;
             foreach(Arena arena in DbManager.Arenas)
@@ -278,6 +295,9 @@ namespace TerraPvP
 
         void createArena(CommandArgs e)
         {
+            if (e.Player == null)
+                return;
+
             if (e.Parameters.Count == 0)
             {
                 e.Player.SendErrorMessage("Invalid syntax! Proper syntax: {0}tcreate <arena name>", Commands.Specifier);
@@ -293,6 +313,9 @@ namespace TerraPvP
 
         void saveArena(CommandArgs e)
         {
+            if (e.Player == null)
+                return;
+
             if (e.Parameters.Count == 0)
             {
                 e.Player.SendErrorMessage("Invalid syntax! Proper syntax: {0}tsave <arena name>", Commands.Specifier);
@@ -320,6 +343,9 @@ namespace TerraPvP
 
         void setArenaSpawn(CommandArgs e)
         {
+            if (e.Player == null)
+                return;
+
             if (e.Parameters.Count == 0)
             {
                 e.Player.SendErrorMessage("Invalid syntax! Proper syntax: {0}tsetspawn <region name> <1 / 2> (First use set 1)", Commands.Specifier);
@@ -457,6 +483,9 @@ namespace TerraPvP
 
         void getstats(CommandArgs e)
         {
+            if (e.Player == null)
+                return;
+
             int mmr = 0;
             string rank = "";
 
