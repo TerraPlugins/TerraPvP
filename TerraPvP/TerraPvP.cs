@@ -170,6 +170,12 @@ namespace TerraPvP
             if (args.Player == null)
                 return;
 
+            if (PvPFights.Count == 0)
+                return;
+
+            if (!args.Player.IsLoggedIn)
+                return;
+
             foreach (PVPFight duel in PvPFights)
             {
                 if(duel.User1.UserID == args.Player.User.ID || duel.User2.UserID == args.Player.User.ID)
