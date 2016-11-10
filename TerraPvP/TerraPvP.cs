@@ -71,9 +71,9 @@ namespace TerraPvP
 
         void OnInitialize(EventArgs args)
         {
-            Commands.ChatCommands.Add(new Command("terrapvp.qeue", pvpqeue, "tqeue")
+            Commands.ChatCommands.Add(new Command("terrapvp.queue", pvpqeue, "tqueue")
             {
-                HelpText = "Usage: /tqeue"
+                HelpText = "Usage: /tqueue"
             });
             Commands.ChatCommands.Add(new Command("terrapvp.stats", getstats, "tstats")
             {
@@ -433,12 +433,12 @@ namespace TerraPvP
 
             if (already_in_qeue)
             {
-                e.Player.SendErrorMessage("[TerraPvP]  You are already in qeue!");
+                e.Player.SendErrorMessage("[TerraPvP]  You are already in queue!");
             }
             else
             {
                 UsersInQeue.Add(player);
-                e.Player.SendSuccessMessage("[TerraPvP]  You entered the qeue succesfully");
+                e.Player.SendSuccessMessage("[TerraPvP]  You entered the queue succesfully");
             }
         }
 
@@ -465,7 +465,7 @@ namespace TerraPvP
                                     continue;
                                 }
                                 
-                                //delete them from qeue list
+                                //delete them from queue list
                                 int userid = UsersInQeue[ii].UserID;
                                 UsersInQeue.RemoveAt(i);
                                 for (int o = 0; o < UsersInQeue.Count; o++)
