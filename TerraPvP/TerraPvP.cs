@@ -8,10 +8,11 @@ using System.IO;
 using System.Data;
 using System.Timers;
 using System.Text;
+using OTAPI;
 
 namespace TerraPvP
 {
-    [ApiVersion(1, 25)]
+    [ApiVersion(1, 26)]
     public class TerraPvP : TerrariaPlugin
     {
         public static IDbConnection Db { get; private set; }
@@ -33,7 +34,6 @@ namespace TerraPvP
 
         public TerraPvP(Main game) : base(game)
         {
-
         }
 
         #region Initialize
