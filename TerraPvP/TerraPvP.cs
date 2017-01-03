@@ -12,7 +12,7 @@ using OTAPI;
 
 namespace TerraPvP
 {
-    [ApiVersion(1, 26)]
+    [ApiVersion(2, 0)]
     public class TerraPvP : TerrariaPlugin
     {
         public static IDbConnection Db { get; private set; }
@@ -29,7 +29,7 @@ namespace TerraPvP
         public override string Name { get { return "TerraPvP"; } }
         public override string Author { get { return "Ryozuki"; } }
         public override string Description { get { return "A PvP plugin with ladder and ranks system"; } }
-        public override Version Version { get { return new Version(1, 0, 4); } }
+        public override Version Version { get { return new Version(1, 0, 5); } }
         #endregion
 
         public TerraPvP(Main game) : base(game)
