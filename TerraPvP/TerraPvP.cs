@@ -74,19 +74,23 @@ namespace TerraPvP
 
         void OnInitialize(EventArgs args)
         {
-            Commands.ChatCommands.Add(new Command("terrapvp.queue", pvpqeue, "tqueue")
+            Commands.ChatCommands.Add(new Command("terrapvp.queue", JoinQueue, "tqueue")
             {
-                HelpText = "Usage: /tqueue"
+                HelpText = "Usage: /tqueue or /tqueue <user> [Joins the queue]"
             });
-            Commands.ChatCommands.Add(new Command("terrapvp.stats", getstats, "tstats")
+            Commands.ChatCommands.Add(new Command("terrapvp.queue", LeaveQueue, "tleave")
+            {
+                HelpText = "Usage: /tleave [Leaves the queue]"
+            });
+            Commands.ChatCommands.Add(new Command("terrapvp.stats", GetStats, "tstats")
             {
                 HelpText = "Usage: /tstats <name> or /tstats"
             });
-            Commands.ChatCommands.Add(new Command("terrapvp.arena", createArena, "tcreate")
+            Commands.ChatCommands.Add(new Command("terrapvp.arena", CreateArena, "tcreate")
             {
                 HelpText = "Usage: /tcreate <arena name>"
             });
-            Commands.ChatCommands.Add(new Command("terrapvp.arena", setArenaSpawn, "tsetspawn")
+            Commands.ChatCommands.Add(new Command("terrapvp.arena", SetArenaSpawn, "tsetspawn")
             {
                 HelpText = "Usage: /tsetspawn <arena name> <1 / 2>"
             });
@@ -94,7 +98,6 @@ namespace TerraPvP
             {
                 HelpText = "Usage: /tsave <arena name>"
             });
-
             Commands.ChatCommands.Add(new Command("terrapvp.list", listArenas, "tlist")
             {
                 HelpText = "Usage: /tlist"
@@ -297,7 +300,42 @@ namespace TerraPvP
                 e.Player.SendErrorMessage("[TerraPvP]  A arena with that name doesn't exist.");
         }
 
-        void createArena(CommandArgs e)
+        private void LeaveQueue(CommandArgs e)
+        {
+            if (e.Player == null)
+                return;
+
+            if (e.Parameters.Count == 0)
+            {
+                if(UsersInQeue.Any(x => x.UserID == e.Player.User.ID))
+                {
+                    UsersInQeue.RemoveAll(x => x.UserID == e.Player.User.ID);
+                    e.Player.SendSuccessMessage("[TerraPvP] You left the queue");
+                }
+                else
+                {
+                    e.Player.SendInfoMessage("[TerraPvP] You are not in the queue");
+                }
+                return;
+            }
+            else
+            {
+                if (e.Player.HasPermission("terrapvp.forceleave"))
+                {
+                    if (UsersInQeue.Any(x => x.Name == e.Parameters[0]))
+                    {
+                        UsersInQeue.RemoveAll(x => x.Name == e.Parameters[0]);
+                        e.Player.SendSuccessMessage($"[TerraPvP] Deleted {e.Parameters[0]} from the queue");
+                    }
+                    else
+                    {
+                        e.Player.SendInfoMessage($"[TerraPvP] {e.Parameters[0]} is no in the queue");
+                    }
+                }
+            }
+        }
+
+        void CreateArena(CommandArgs e)
         {
             if (e.Player == null)
                 return;
@@ -347,7 +385,7 @@ namespace TerraPvP
                 e.Player.SendInfoMessage("[TerraPvP] A arena with that name doesn't exist.");
         }
 
-        void setArenaSpawn(CommandArgs e)
+        void SetArenaSpawn(CommandArgs e)
         {
             if (e.Player == null)
                 return;
@@ -391,7 +429,7 @@ namespace TerraPvP
                 e.Player.SendErrorMessage("[TerraPvP]  A arena with that name doesn't exist");
         }
 
-        void pvpqeue(CommandArgs e)
+        void JoinQueue(CommandArgs e)
         {
             if (e.Player == null)
                 return;
@@ -437,7 +475,7 @@ namespace TerraPvP
             }
         }
 
-        void getstats(CommandArgs e)
+        void GetStats(CommandArgs e)
         {
             if (e.Player == null)
                 return;
