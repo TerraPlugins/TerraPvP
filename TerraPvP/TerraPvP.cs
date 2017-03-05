@@ -8,7 +8,7 @@ using System.IO;
 using System.Data;
 using System.Timers;
 using System.Text;
-using OTAPI;
+using System.Linq;
 
 namespace TerraPvP
 {
@@ -17,19 +17,22 @@ namespace TerraPvP
     {
         public static IDbConnection Db { get; private set; }
         public static DBManager DbManager { get; private set; }
-        public static List<ConfigFile.Rank> ranklist = new List<ConfigFile.Rank>();
 
+        public static List<ConfigFile.Rank> RankList = new List<ConfigFile.Rank>();
         public List<PRank> UsersInQeue = new List<PRank>();
         public List<PVPFight> PvPFights = new List<PVPFight>();
-        public List<Arena> Arenas = new List<Arena>();
+        public static List<Arena> Arenas = new List<Arena>();
+        public static List<PRank> PlayerRanks = new List<PRank>();
+
         public ConfigFile Config = new ConfigFile();
+
         Timer CheckQTimer = new Timer();
 
         #region Info
         public override string Name { get { return "TerraPvP"; } }
         public override string Author { get { return "Ryozuki"; } }
         public override string Description { get { return "A PvP plugin with ladder and ranks system"; } }
-        public override Version Version { get { return new Version(1, 0, 5); } }
+        public override Version Version { get { return new Version(1, 1, 0); } }
         #endregion
 
         public TerraPvP(Main game) : base(game)
@@ -107,12 +110,13 @@ namespace TerraPvP
 
             Db = new SqliteConnection("uri=file://" + Path.Combine(TShock.SavePath, "TerraPvP.sqlite") + ",Version=3");
 
-            ranklist = Config.RankList;
+            RankList = Config.RankList;
         }
 
         private void OnPostInitialize(EventArgs args)
         {
             DbManager = new DBManager(Db);
+            Arenas = DbManager.LoadArenas();
         }
 
         void OnPlayerLogin(TShockAPI.Hooks.PlayerPostLoginEventArgs args)
@@ -120,8 +124,17 @@ namespace TerraPvP
             if (args.Player == null)
                 return;
 
-            PRank playerrank = new PRank(args.Player.User.ID, args.Player.Name, 1500, Config.RankList[0].name);
-            DbManager.addPlayer(playerrank);
+
+            if (DbManager.PlayerExist(args.Player.User.ID))
+            {
+                PlayerRanks.Add(DbManager.LoadPlayer(args.Player.User.ID));
+            }
+            else
+            {
+                PRank prank = new PRank(args.Player.User.ID, args.Player.Name, 1500, Config.RankList[0].name);
+                DbManager.addPlayer(prank);
+                PlayerRanks.Add(prank);
+            }
         }
 
         private void OnTeamChange(object sender, GetDataHandlers.PlayerTeamEventArgs args)
@@ -129,9 +142,7 @@ namespace TerraPvP
             var ply = TShock.Players[args.PlayerId];
 
             if(ply == null)
-            {
                 return;
-            }
 
             foreach (PVPFight duel in PvPFights)
             {
@@ -243,13 +254,12 @@ namespace TerraPvP
         {
             if (e.Player == null)
                 return;
-
-            DbManager.topTen();
+            
             int i = 1;
             e.Player.SendSuccessMessage("[TerraPvP] Top 10 ladder:");
-            foreach (PRank player in DbManager.topten)
+            foreach (PRank player in DbManager.topTen())
             {
-                e.Player.SendSuccessMessage(i + ". Name: " + player.Name + " Rank: " + player.Rank + " MMR: " + player.MMR);
+                e.Player.SendSuccessMessage($"{i}. Name: {player.Name} | Rank: {player.Rank} | MMR: {player.MMR}");
                 i++;
             }
         }
@@ -261,19 +271,12 @@ namespace TerraPvP
 
             StringBuilder arena_list = new StringBuilder();
 
-            foreach (Arena arena in DbManager.Arenas)
-            {
-                arena_list.Append(" " + arena.regionName);
-            }
+            Arenas.ForEach(x => arena_list.Append($" {x.regionName}"));
 
             if (!string.IsNullOrWhiteSpace(arena_list.ToString()))
-            {
                 e.Player.SendSuccessMessage("[TerraPvP]  Arenas:" + arena_list.ToString());
-            }
             else
-            {
                 e.Player.SendErrorMessage("[TerraPvP] There are no arenas");
-            }
         }
 
         void delArena(CommandArgs e)
@@ -282,21 +285,16 @@ namespace TerraPvP
                 return;
 
             string[] args = e.Parameters.ToArray();
-            bool exist = false;
-            foreach(Arena arena in DbManager.Arenas)
+
+            if(Arenas.Any(x => x.regionName == args[0]))
             {
-                if(args[0] == arena.regionName)
-                {
-                    exist = true;
-                    DbManager.delArena(arena);
-                    e.Player.SendSuccessMessage("Arena deleted.");
-                    break;
-                }
+                var arena = Arenas.Find(x => x.regionName == args[0]);
+                DbManager.delArena(arena);
+                Arenas.RemoveAll(x => x.regionName == args[0]);
+                e.Player.SendSuccessMessage("Arena deleted.");
             }
-            if (!exist)
-            {
+            else
                 e.Player.SendErrorMessage("[TerraPvP]  A arena with that name doesn't exist.");
-            }
         }
 
         void createArena(CommandArgs e)
@@ -330,21 +328,23 @@ namespace TerraPvP
 
             string[] args = e.Parameters.ToArray();
 
-            foreach (Arena arena in Arenas)
+            if (Arenas.Any(x => x.regionName == args[0]))
             {
-                if(arena.regionName == args[0])
+                Arena arena = Arenas.Find(x => x.regionName == args[0]);
+
+                if (float.IsNaN(arena.spawn1_x) || float.IsNaN(arena.spawn1_y) || float.IsNaN(arena.spawn2_x) || float.IsNaN(arena.spawn2_y))
                 {
-                    if(float.IsNaN(arena.spawn1_x) || float.IsNaN(arena.spawn1_y) || float.IsNaN(arena.spawn2_x) || float.IsNaN(arena.spawn2_y))
-                    {
-                        e.Player.SendErrorMessage("[TerraPvP]  Error: One or more spawn points missing!");
-                    }
-                    else
-                    {
-                        DbManager.addArena(arena);
-                        e.Player.SendSuccessMessage("[TerraPvP] Succesfully saved arena '" + args[0] + "'");
-                    }
+                    e.Player.SendErrorMessage("[TerraPvP]  Error: One or more spawn points missing!");
+                }
+                else
+                {
+                    DbManager.addArena(arena);
+                    arena.IsValid = true;
+                    e.Player.SendSuccessMessage($"[TerraPvP] Succesfully saved arena '{args[0]}'");
                 }
             }
+            else
+                e.Player.SendInfoMessage("[TerraPvP] A arena with that name doesn't exist.");
         }
 
         void setArenaSpawn(CommandArgs e)
@@ -360,45 +360,35 @@ namespace TerraPvP
 
             string[] args = e.Parameters.ToArray();
 
-            bool exist = false;
-            foreach (Arena arena in Arenas)
+            if(Arenas.Any(x => x.regionName == args[0]))
             {
-                if(arena.regionName == args[0].ToString() && args[1] == "1")
+                Arena arena = Arenas.Find(x => x.regionName == args[0]);
+
+                if(args[1] == "1")
                 {
                     arena.spawn1_x = e.Player.TileX * 16;
                     arena.spawn1_y = e.Player.TileY * 16;
-                    if(float.IsNaN(arena.spawn1_y) || float.IsNaN(arena.spawn1_y))
-                    {
+                    if (float.IsNaN(arena.spawn1_y) || float.IsNaN(arena.spawn1_y))
                         e.Player.SendErrorMessage("[TerraPvP]  There was an error, please try again.");
-                    }
                     else
-                    {
                         e.Player.SendSuccessMessage("[TerraPvP]  Spawn point added succesfully, add now the second.");
-                    }
-                    exist = true;
                 }
-
-                if (arena.regionName == args[0].ToString() && args[1] == "2")
+                else if(args[1] == "2")
                 {
                     arena.spawn2_x = e.Player.TileX * 16;
                     arena.spawn2_y = e.Player.TileY * 16;
-                    exist = true;
                     if (float.IsNaN(arena.spawn2_y) || float.IsNaN(arena.spawn2_x))
-                    {
                         e.Player.SendErrorMessage("[TerraPvP]  There was an error, please try again.");
-                    }
                     else
-                    {
-                        e.Player.SendSuccessMessage("[TerraPvP]  Spawn point added succesfully, now you can save it with /savearena <arena name>");
-                    }
+                        e.Player.SendSuccessMessage("[TerraPvP]  Spawn point added succesfully, now you can save it with /tsave <arena name>");
+                }
+                else
+                {
+                    e.Player.SendInfoMessage($"{Commands.Specifier}tsetspawn <region name> <1 / 2> (First use set 1)");
                 }
             }
-
-            if (!exist)
-            {
+            else
                 e.Player.SendErrorMessage("[TerraPvP]  A arena with that name doesn't exist");
-            }
-            exist = false;
         }
 
         void pvpqeue(CommandArgs e)
@@ -409,36 +399,14 @@ namespace TerraPvP
             if (!e.Player.IsLoggedIn)
                 return;
 
-            int mmr = 0;
-            string rank = "";
+            PRank player = PlayerRanks.Find(x => x.UserID == e.Player.User.ID);
 
-            for (int i = 0; i < DbManager.pranks.Count; i++)
-            {
-                if (DbManager.pranks[i].UserID == e.Player.User.ID)
-                {
-                    mmr = DbManager.pranks[i].MMR;
-                    rank = DbManager.pranks[i].Rank;
-                }
-
-            }
-            PRank player = new PRank(e.Player.User.ID, e.Player.Name, mmr, rank);
-            bool already_in_qeue = false;
-            foreach(PRank playerr in UsersInQeue)
-            {
-                if(playerr.UserID == e.Player.User.ID)
-                {
-                    already_in_qeue = true;
-                }
-            }
-
-            if (already_in_qeue)
-            {
+            if (UsersInQeue.Any(x => x.UserID == player.UserID))
                 e.Player.SendErrorMessage("[TerraPvP]  You are already in queue!");
-            }
             else
             {
                 UsersInQeue.Add(player);
-                e.Player.SendSuccessMessage("[TerraPvP]  You entered the queue succesfully");
+                e.Player.SendSuccessMessage("[TerraPvP] You entered the queue succesfully");
             }
         }
 
@@ -450,37 +418,19 @@ namespace TerraPvP
                 {
                     if(UsersInQeue[i].UserID != UsersInQeue[ii].UserID)
                     {
-                        if (UsersInQeue[ii].MMR >= UsersInQeue[i].MMR - Config.MaxMMRDifference && UsersInQeue[ii].MMR <= UsersInQeue[i].MMR + Config.MaxMMRDifference)
+                        if (UsersInQeue[ii].MMR >= UsersInQeue[i].MMR - Config.MaxMMRDifference 
+                            && UsersInQeue[ii].MMR <= UsersInQeue[i].MMR + Config.MaxMMRDifference)
                         {
-                            try
-                            {
-                                //add them to a arena
-                                PVPFight duel = new PVPFight(UsersInQeue[i], UsersInQeue[ii]);
-                                if (duel.creationSucces)
-                                {
-                                    PvPFights.Add(duel);
-                                }
-                                else
-                                {
-                                    continue;
-                                }
-                                
-                                //delete them from queue list
-                                int userid = UsersInQeue[ii].UserID;
-                                UsersInQeue.RemoveAt(i);
-                                for (int o = 0; o < UsersInQeue.Count; o++)
-                                {
-                                    if (UsersInQeue[o].UserID == userid)
-                                    {
-                                        UsersInQeue.RemoveAt(o);
-                                    }
-                                }
-                            }
-                            catch (Exception e)
-                            {
-                                Console.WriteLine(e.ToString());
-                            }
+                            //add them to a arena
+                            PVPFight duel = new PVPFight(UsersInQeue[i], UsersInQeue[ii]);
+                            if (duel.creationSucces)
+                                PvPFights.Add(duel);
+                            else
+                                continue;
 
+                            //delete them from queue list
+                            UsersInQeue.RemoveAll(x => x.UserID == UsersInQeue[i].UserID);
+                            UsersInQeue.RemoveAll(x => x.UserID == UsersInQeue[ii].UserID);
                         }
                     }
                 }
@@ -492,67 +442,30 @@ namespace TerraPvP
             if (e.Player == null)
                 return;
 
-            int mmr = 0;
-            string rank = "";
-
             if (e.Parameters.Count == 0)
             {
                 if (e.Player == null)
                     return;
 
-                for (int i = 0; i < DbManager.pranks.Count; i++)
-                {
-                    if (DbManager.pranks[i].UserID == e.Player.User.ID)
-                    {
-                        mmr = DbManager.pranks[i].MMR;
-                        rank = DbManager.pranks[i].Rank;
-                    }
-
-                }
-                e.Player.SendSuccessMessage("Stats for " + e.Player.Name);
-                e.Player.SendSuccessMessage("Rank: " + rank);
-                e.Player.SendSuccessMessage("MMR: " + mmr);
+                PRank player = PlayerRanks.Find(x => x.UserID == e.Player.User.ID);
+                e.Player.SendSuccessMessage($"[TerraPvP] {e.Player.Name}'s stats:");
+                e.Player.SendSuccessMessage("Rank: " + player.Rank);
+                e.Player.SendSuccessMessage("MMR: " + player.MMR);
             }
             else
             {
-                string plrName = String.Join(" ", e.Parameters.ToArray());
+                var name = e.Parameters[0];
 
-                var players = TShock.Utils.FindPlayer(plrName);
-
-                if (players.Count == 0)
+                if (DbManager.PlayerExist(name))
                 {
-                    e.Player.SendErrorMessage("Invalid player!");
-                    return;
-                } 
-                else if (players.Count > 1)
-                {
-                    e.Player.SendErrorMessage("More than one player matched!");
-                    return;
+                    PRank player = DbManager.LoadPlayer(name);
+                    e.Player.SendSuccessMessage($"[TerraPvP] {e.Player.Name}'s stats:");
+                    e.Player.SendSuccessMessage("Rank: " + player.Rank);
+                    e.Player.SendSuccessMessage("MMR: " + player.MMR);
                 }
-                    
-
-                int playerid;
-                try
+                else
                 {
-                    playerid = TShock.Users.GetUserByName(plrName).ID;
-                }
-                catch
-                {
-                    e.Player.SendErrorMessage("Player not found");
-                    return;
-                }
-
-                for (int i = 0; i < DbManager.pranks.Count; i++)
-                {
-                    if (DbManager.pranks[i].UserID == playerid)
-                    {
-                        mmr = DbManager.pranks[i].MMR;
-                        rank = DbManager.pranks[i].Rank;
-                        e.Player.SendSuccessMessage("[TerraPvP] Stats:");
-                        e.Player.SendSuccessMessage("Name: " + DbManager.pranks[i].Name);
-                        e.Player.SendSuccessMessage("Rank: " + rank);
-                        e.Player.SendSuccessMessage("MMR: " + mmr);
-                    }
+                    e.Player.SendInfoMessage("[TerraPvP] Player not found.");
                 }
             }
         }

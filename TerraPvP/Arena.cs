@@ -16,10 +16,12 @@ namespace TerraPvP
         public int spawn2_y { get; set; }
         public TShockAPI.DB.Region Region { get; set; }
         public bool someoneFighting { get; set; }
+        public bool IsValid { get; set; }
 
         public Arena(string RegionName)
         {
             regionName = RegionName;
+            IsValid = false;
         }
 
         public Arena(string RegionName, int Spawn1_x, int Spawn1_y, int Spawn2_x, int Spawn2_y)
@@ -30,6 +32,7 @@ namespace TerraPvP
             spawn2_x = Spawn2_x;
             spawn2_y = Spawn2_y;
             someoneFighting = false;
+            IsValid = true;
         }
     }
 }

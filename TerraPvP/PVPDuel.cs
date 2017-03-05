@@ -26,9 +26,9 @@ namespace TerraPvP
             creationSucces = false;
             try
             {
-                foreach(Arena arena in TerraPvP.DbManager.Arenas)
+                foreach(Arena arena in TerraPvP.Arenas)
                 {
-                    if (!arena.someoneFighting)
+                    if (!arena.someoneFighting && arena.IsValid)
                     {
                         creationSucces = true;
                         User1 = user1;
@@ -101,14 +101,7 @@ namespace TerraPvP
                 TShock.Utils.Broadcast("[TerraPvP] " + Winner.Name + " ("+ Winner.Rank+ ", " + Winner.MMR + ")" + " won vs " + Loser.Name + " (" + Loser.Rank + ", " + Loser.MMR + ")", color);
                 player1.SendInfoMessage(Config.onPvPFinishMessage);
                 player2.SendInfoMessage(Config.onPvPFinishMessage);
-
-                foreach(Arena arena in TerraPvP.DbManager.Arenas)
-                {
-                    if(arena.regionName == arenaName)
-                    {
-                        arena.someoneFighting = false;
-                    }
-                }
+                TerraPvP.Arenas.Find(x => x.regionName == arenaName).someoneFighting = false;
             }
         }
     }

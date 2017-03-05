@@ -27,7 +27,7 @@ namespace TerraPvP
         {
             try
             {
-                foreach (ConfigFile.Rank rank in TerraPvP.ranklist)
+                foreach (ConfigFile.Rank rank in TerraPvP.RankList)
                 {
                     if (MMR >= rank.mmr)
                     {
@@ -40,14 +40,7 @@ namespace TerraPvP
                 }
 
                 TerraPvP.DbManager.updatePlayer(this);
-                foreach(PRank prank in TerraPvP.DbManager.pranks)
-                {
-                    if(prank.UserID == UserID)
-                    {
-                        prank.Rank = Rank;
-                    }
-                }
-                
+                TerraPvP.PlayerRanks.Find(x => x.UserID == UserID).Rank = Rank;
             }
             catch(Exception e)
             {

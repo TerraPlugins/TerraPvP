@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Data;
 using TShockAPI.DB;
 using MySql.Data.MySqlClient;
@@ -9,10 +10,6 @@ namespace TerraPvP
     public class DBManager
     {
         private IDbConnection db;
-        public List<PRank> pranks = new List<PRank>();
-        public List<PRank> topten = new List<PRank>();
-        public List<Arena> Arenas = new List<Arena>();
-        private bool exists = false;
 
         public DBManager(IDbConnection db)
         {
@@ -34,31 +31,64 @@ namespace TerraPvP
                 new SqlColumn("spawn2_x", MySqlDbType.Int32),
                 new SqlColumn("spawn2_y", MySqlDbType.Int32)
                 ));
+        }
 
-            using (QueryResult result = db.QueryReader("SELECT * FROM Arenas"))
+        public PRank LoadPlayer(int userid)
+        {
+            using (QueryResult result = db.QueryReader("SELECT * FROM UserRanks WHERE UserID=@0", userid))
             {
                 while (result.Read())
                 {
-                    Arenas.Add(new Arena(
-                        result.Get<string>("Region"),
-                        result.Get<int>("spawn1_x"),
-                        result.Get<int>("spawn1_y"),
-                        result.Get<int>("spawn2_x"),
-                        result.Get<int>("spawn2_y")));
-                }
-            }
-
-            using (QueryResult result = db.QueryReader("SELECT * FROM UserRanks"))
-            {
-                while (result.Read())
-                {
-                    pranks.Add(new PRank(
+                    return new PRank(
                         result.Get<int>("UserID"),
                         result.Get<string>("Name"),
                         result.Get<int>("MMR"),
-                        result.Get<string>("Rank")));
+                        result.Get<string>("Rank"));
                 }
             }
+
+            return null;
+        }
+
+        public PRank LoadPlayer(string name)
+        {
+            using (QueryResult result = db.QueryReader("SELECT * FROM UserRanks WHERE Name=@0", name))
+            {
+                while (result.Read())
+                {
+                    return new PRank(
+                        result.Get<int>("UserID"),
+                        result.Get<string>("Name"),
+                        result.Get<int>("MMR"),
+                        result.Get<string>("Rank"));
+                }
+            }
+
+            return null;
+        }
+
+        public bool PlayerExist(int userid)
+        {
+            using (QueryResult result = db.QueryReader("SELECT * FROM UserRanks WHERE UserID=@0", userid))
+            {
+                if (result.Read())
+                {
+                    return true; // Test this
+                }
+            }
+            return false;
+        }
+
+        public bool PlayerExist(string name)
+        {
+            using (QueryResult result = db.QueryReader("SELECT * FROM UserRanks WHERE Name=@0", name))
+            {
+                if (result.Read())
+                {
+                    return true; // Test this
+                }
+            }
+            return false;
         }
 
         public void addArena(Arena arena)
@@ -70,104 +100,66 @@ namespace TerraPvP
                 arena.spawn2_x,
                 arena.spawn2_y
                 );
-
-            Arenas.Add(arena);
         }
 
         public void delArena(Arena arena)
         {
-            try
-            {
-                db.Query("DELETE FROM Arenas WHERE Region = @0", arena.regionName);
-
-                for (int i = 0; i < Arenas.Count; i++)
-                {
-                    if (Arenas[i].regionName == arena.regionName)
-                    {
-                        Arenas.RemoveAt(i);
-                    }
-                }
-            }
-            catch(Exception e)
-            {
-                Console.WriteLine(e.StackTrace);
-            }
-            
+            db.Query("DELETE FROM Arenas WHERE Region = @0", arena.regionName);
         }
 
-        public void topTen()
+        public List<PRank> topTen()
         {
-            try
+            List<PRank> top = new List<PRank>();
+            using (QueryResult result = db.QueryReader("SELECT * FROM UserRanks ORDER BY MMR DESC LIMIT 10"))
             {
-                topten.RemoveRange(0, topten.Count);
-                using (QueryResult result = db.QueryReader("SELECT * FROM UserRanks ORDER BY MMR DESC LIMIT 10"))
+                while (result.Read())
                 {
-                    while (result.Read())
-                    {
-                        topten.Add(new PRank(
-                            result.Get<int>("UserID"),
-                            result.Get<string>("Name"),
-                            result.Get<int>("MMR"),
-                            result.Get<string>("Rank")));
-                    }
+                    top.Add(new PRank(
+                        result.Get<int>("UserID"),
+                        result.Get<string>("Name"),
+                        result.Get<int>("MMR"),
+                        result.Get<string>("Rank")));
                 }
             }
-            catch(Exception e)
-            {
-                Console.WriteLine(e.StackTrace);
-            }
-            
+
+            return top;
         }
 
         public void addPlayer(PRank player)
         {
-            for (int i = 0; i < pranks.Count; i++)
-            {
-                if (pranks[i].UserID == player.UserID)
-                {
-                    exists = true;
-                }
-            }
-            
-            if (exists == false)
-            {
-                db.Query("INSERT INTO UserRanks (UserID, Name, MMR, Rank) VALUES (@0, @1, @2, @3)",
+            db.Query("INSERT INTO UserRanks (UserID, Name, MMR, Rank) VALUES (@0, @1, @2, @3)",
                 player.UserID,
                 player.Name,
                 player.MMR,
                 player.Rank
                 );
-
-                pranks.Add(new PRank(
-                player.UserID,
-                player.Name,
-                player.MMR,
-                player.Rank));
-            }
-            exists = false;
         }
 
         public void updatePlayer(PRank player)
         {
-            try
-            {
-                db.Query("UPDATE UserRanks SET MMR=@0, Rank=@1 WHERE UserID=@2",
+            db.Query("UPDATE UserRanks SET MMR=@0, Rank=@1 WHERE UserID=@2",
                 player.MMR,
                 player.Rank,
                 player.UserID
                 );
-                for (int i = 0; i < pranks.Count; i++)
+        }
+
+        public List<Arena> LoadArenas()
+        {
+            List<Arena> arenas = new List<Arena>();
+            using (QueryResult result = db.QueryReader("SELECT * FROM Arenas"))
+            {
+                while (result.Read())
                 {
-                    if (pranks[i].UserID == player.UserID)
-                    {
-                        pranks[i].updateMMR(player.MMR);
-                    }
+                    arenas.Add(new Arena(
+                        result.Get<string>("Region"),
+                        result.Get<int>("spawn1_x"),
+                        result.Get<int>("spawn1_y"),
+                        result.Get<int>("spawn2_x"),
+                        result.Get<int>("spawn2_y")));
                 }
             }
-            catch(Exception e)
-            {
-                Console.WriteLine(e.StackTrace);
-            }
+            return arenas;
         }
     }
 }
