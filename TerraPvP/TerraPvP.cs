@@ -82,6 +82,10 @@ namespace TerraPvP
             {
                 HelpText = "Usage: /tleave [Leaves the queue]"
             });
+            Commands.ChatCommands.Add(new Command("terrapvp.queue", ListQueue, "tinqueue")
+            {
+                HelpText = "Usage: /tinqueue [Returns a list with the users in the queue]"
+            });
             Commands.ChatCommands.Add(new Command("terrapvp.stats", GetStats, "tstats")
             {
                 HelpText = "Usage: /tstats <name> or /tstats"
@@ -277,9 +281,24 @@ namespace TerraPvP
             Arenas.ForEach(x => arena_list.Append($" {x.regionName}"));
 
             if (!string.IsNullOrWhiteSpace(arena_list.ToString()))
-                e.Player.SendSuccessMessage("[TerraPvP]  Arenas:" + arena_list.ToString());
+                e.Player.SendSuccessMessage("[TerraPvP] Arenas:" + arena_list.ToString());
             else
                 e.Player.SendErrorMessage("[TerraPvP] There are no arenas");
+        }
+
+        private void ListQueue(CommandArgs e)
+        {
+            if (e.Player == null)
+                return;
+
+            StringBuilder queueList = new StringBuilder();
+
+            UsersInQeue.ForEach(x => queueList.Append($" {x.Name}"));
+
+            if (!string.IsNullOrWhiteSpace(queueList.ToString()))
+                e.Player.SendSuccessMessage("[TerraPvP] Users in Queue:" + queueList.ToString());
+            else
+                e.Player.SendErrorMessage("[TerraPvP] Queue is empty");
         }
 
         void delArena(CommandArgs e)
@@ -287,17 +306,24 @@ namespace TerraPvP
             if (e.Player == null)
                 return;
 
-            string[] args = e.Parameters.ToArray();
-
-            if(Arenas.Any(x => x.regionName == args[0]))
+            if(e.Parameters.Count > 0)
             {
-                var arena = Arenas.Find(x => x.regionName == args[0]);
-                DbManager.delArena(arena);
-                Arenas.RemoveAll(x => x.regionName == args[0]);
-                e.Player.SendSuccessMessage("Arena deleted.");
+                string[] args = e.Parameters.ToArray();
+
+                if (Arenas.Any(x => x.regionName == args[0]))
+                {
+                    var arena = Arenas.Find(x => x.regionName == args[0]);
+                    DbManager.delArena(arena);
+                    Arenas.RemoveAll(x => x.regionName == args[0]);
+                    e.Player.SendSuccessMessage("Arena deleted.");
+                }
+                else
+                    e.Player.SendErrorMessage("[TerraPvP]  A arena with that name doesn't exist.");
             }
             else
-                e.Player.SendErrorMessage("[TerraPvP]  A arena with that name doesn't exist.");
+            {
+                e.Player.SendInfoMessage("Usage: / tdel <arena name>");
+            }
         }
 
         private void LeaveQueue(CommandArgs e)
