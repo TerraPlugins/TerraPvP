@@ -351,12 +351,16 @@ namespace TerraPvP
                     if (UsersInQeue.Any(x => x.Name == e.Parameters[0]))
                     {
                         UsersInQeue.RemoveAll(x => x.Name == e.Parameters[0]);
-                        e.Player.SendSuccessMessage($"[TerraPvP] Deleted {e.Parameters[0]} from the queue");
+                        e.Player.SendSuccessMessage($"[TerraPvP] Deleted '{e.Parameters[0]}' from the queue");
                     }
                     else
                     {
                         e.Player.SendInfoMessage($"[TerraPvP] {e.Parameters[0]} is no in the queue");
                     }
+                }
+                else
+                {
+                    e.Player.SendInfoMessage("You don't have enough permissions to force a user to leave the queue");
                 }
             }
         }
@@ -460,17 +464,40 @@ namespace TerraPvP
             if (e.Player == null)
                 return;
 
-            if (!e.Player.IsLoggedIn)
-                return;
+            if(e.Parameters.Count == 0)
+            {
+                if (!e.Player.IsLoggedIn)
+                    return;
 
-            PRank player = PlayerRanks.Find(x => x.UserID == e.Player.User.ID);
+                PRank player = PlayerRanks.Find(x => x.UserID == e.Player.User.ID);
 
-            if (UsersInQeue.Any(x => x.UserID == player.UserID))
-                e.Player.SendErrorMessage("[TerraPvP]  You are already in queue!");
+                if (UsersInQeue.Any(x => x.UserID == player.UserID))
+                    e.Player.SendErrorMessage("[TerraPvP]  You are already in queue!");
+                else
+                {
+                    UsersInQeue.Add(player);
+                    e.Player.SendSuccessMessage("[TerraPvP] You entered the queue succesfully");
+                }
+            }
             else
             {
-                UsersInQeue.Add(player);
-                e.Player.SendSuccessMessage("[TerraPvP] You entered the queue succesfully");
+                if (e.Player.HasPermission("terrapvp.forcequeue"))
+                {
+                    if (PlayerRanks.Any(x => x.Name == e.Parameters[0]))
+                    {
+                        PRank user = PlayerRanks.Find(x => x.Name == e.Parameters[0]);
+                        UsersInQeue.Add(user);
+                        e.Player.SendSuccessMessage($"[TerraPvP] Player '{e.Parameters[0]}' added to the queue.");
+                    }
+                    else
+                    {
+                        e.Player.SendInfoMessage("[TerraPvP] Player doesn't exist");
+                    }
+                }
+                else
+                {
+                    e.Player.SendInfoMessage("You don't have enough permissions to force a user to join the queue");
+                }
             }
         }
 
