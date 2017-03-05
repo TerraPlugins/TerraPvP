@@ -68,8 +68,6 @@ namespace TerraPvP
             {
                 Console.WriteLine(e.StackTrace);
             }
-
-
         }
 
         public void SetWinner(PRank winner)
