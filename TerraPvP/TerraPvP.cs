@@ -12,7 +12,7 @@ using System.Linq;
 
 namespace TerraPvP
 {
-    [ApiVersion(2, 0)]
+    [ApiVersion(2, 1)]
     public class TerraPvP : TerrariaPlugin
     {
         public static IDbConnection Db { get; private set; }
@@ -176,7 +176,7 @@ namespace TerraPvP
                 if (duel.User1.UserID == ply.User.ID || duel.User2.UserID == ply.User.ID)
                 {
                     Main.player[ply.Index].hostile = true;
-                    NetMessage.SendData((int)PacketTypes.TogglePvp, -1, -1, "", ply.Index);
+                    NetMessage.SendData((int)PacketTypes.TogglePvp, -1, -1, Terraria.Localization.NetworkText.Empty, ply.Index);
                     ply.SendWarningMessage("[TerraPvP] Your PvP has been forced on, don't try and turn it off!");
                     args.Handled = true;
                 }

@@ -1,0 +1,3 @@
+[submodule "TerraPvP/tshock-references"]
+	path = TerraPvP/tshock-references
+	url = https://github.com/Ryozuki/tshock-references

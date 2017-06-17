@@ -47,8 +47,8 @@ namespace TerraPvP
                         //Enable pvp on them
                         Main.player[player1.Index].hostile = true;
                         Main.player[player2.Index].hostile = true;
-                        NetMessage.SendData((int)PacketTypes.TogglePvp, -1, -1, "", player1.Index);
-                        NetMessage.SendData((int)PacketTypes.TogglePvp, -1, -1, "", player2.Index);
+                        NetMessage.SendData((int)PacketTypes.TogglePvp, -1, -1, Terraria.Localization.NetworkText.Empty, player1.Index);
+                        NetMessage.SendData((int)PacketTypes.TogglePvp, -1, -1, Terraria.Localization.NetworkText.Empty, player2.Index);
 
                         //Send broadcast
                         Color color = new Color(96, 178, 233);
@@ -92,8 +92,8 @@ namespace TerraPvP
                 //Disable pvp on them
                 Main.player[player1.Index].hostile = false;
                 Main.player[player2.Index].hostile = false;
-                NetMessage.SendData((int)PacketTypes.TogglePvp, -1, -1, "", player1.Index);
-                NetMessage.SendData((int)PacketTypes.TogglePvp, -1, -1, "", player2.Index);
+                NetMessage.SendData((int)PacketTypes.TogglePvp, -1, -1, Terraria.Localization.NetworkText.Empty, player1.Index);
+                NetMessage.SendData((int)PacketTypes.TogglePvp, -1, -1, Terraria.Localization.NetworkText.Empty, player2.Index);
 
                 Color color = new Color(126, 226, 126);
                 TShock.Utils.Broadcast("[TerraPvP] " + Winner.Name + " ("+ Winner.Rank+ ", " + Winner.MMR + ")" + " won vs " + Loser.Name + " (" + Loser.Rank + ", " + Loser.MMR + ")", color);
