@@ -191,7 +191,7 @@ namespace TerraPvP
             {
                 HelpText = "Usage: /tsave <arena name>"
             });
-            Commands.ChatCommands.Add(new Command("terrapvp.list", ListArenas, "tlist")
+            Commands.ChatCommands.Add(new Command("terrapvp.join", ListArenas, "tlist")
             {
                 HelpText = "Usage: /tlist"
             });
