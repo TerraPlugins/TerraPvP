@@ -59,10 +59,13 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Arena.cs" />
     <Compile Include="ConfigFile.cs" />
     <Compile Include="DB.cs" />
     <Compile Include="Main.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="PRank.cs" />
+    <Compile Include="Spawn.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="tshock-references\Mono.Data.Sqlite.dll" />
