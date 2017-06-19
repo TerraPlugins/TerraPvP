@@ -7,6 +7,7 @@ using Terraria;
 using TerrariaApi.Server;
 using System.IO;
 using System.Reflection;
+using Microsoft.Xna.Framework;
 
 // TODO: There is a weird error when closing the server with 'exit' after joining sv.
 // TODO: Fix any problems, then push, and try to add custom inventory (kits).
@@ -89,7 +90,7 @@ namespace TerraPvP
 
             if (!DB.PlayerExist(e.Player.User.ID))
             {
-                PRank prank = new PRank(e.Player.User.ID, e.Player.Name, 1500, Config.RankList[0].name);
+                PRank prank = new PRank(e.Player.User.ID, e.Player.Name, Config.DefaultMMR, Config.RankList[0].name);
                 DB.AddPlayer(prank);
             }
         }
@@ -244,9 +245,10 @@ namespace TerraPvP
             if (Arenas.Any(x => x.RegionName == args[0]))
             {
                 Arena arena = Arenas.Find(x => x.RegionName == args[0]);
-
-                arena.SpawnPoints.Add(new Spawn(e.Player.TileX * 16, e.Player.TileY * 16));
-                e.Player.SendSuccessMessage($"[TerraPvP] Added spawnpoint for arena {arena.RegionName} at {e.Player.TileX * 16}, {e.Player.TileY * 16}");
+                var lastTileX = e.Player.LastNetPosition.X;
+                var lastTileY = e.Player.LastNetPosition.Y;
+                arena.SpawnPoints.Add(new Spawn((int)lastTileX, (int)lastTileY));
+                e.Player.SendSuccessMessage($"[TerraPvP] Added spawnpoint for arena {arena.RegionName} at {(int)lastTileX}, {(int)lastTileY}");
                 if (arena.SpawnPoints.Count == 2)
                     e.Player.SendInfoMessage("[TerraPvP] You added 2 or more spawns, you may now save (/tsave) or add more.");
             }

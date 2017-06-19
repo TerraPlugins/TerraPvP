@@ -54,7 +54,7 @@ namespace TerraPvP
             ply.IsAlive = false;
             int aliveplayers = Players.Count - Players.Count(x => x.IsAlive);
             //ply.MMR = aliveplayers > Players.Count / 2 ? (ply.MMR - (aliveplayers / 2)) : (ply.MMR + (Players.Count - aliveplayers) / 2);
-            ply.MMR += Players.Count - (aliveplayers == 1 ? 0 : aliveplayers);
+            ply.MMR += (aliveplayers > Players.Count / 2) ? -aliveplayers : Players.Count - aliveplayers;
 
             ply.Rank = TerraPvP.Config.RankList.OrderBy(x => x.mmr)
                 .TakeWhile(x => ply.MMR > x.mmr)

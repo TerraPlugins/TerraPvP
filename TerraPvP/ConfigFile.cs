@@ -17,6 +17,7 @@ namespace TerraPvP
         }
 
         public int BonusWinMMR = 25;
+        public int DefaultMMR = 1500;
 
         public List<Rank> RankList = new List<Rank>();
 
