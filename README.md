@@ -23,5 +23,3 @@ TerraPvP is a plugin for TShock that adds a pvp ranking ladder with a qeue.
 
 ### Admin
 - terrapvp.arena (/tsave, /tcreate, /tsetspawn, /tdel)
-- terrapvp.forceleave (/tleave \<name>)
-- terrapvp.forcequeue (/tqueue \<name>)
