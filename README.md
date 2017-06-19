@@ -18,7 +18,7 @@ TerraPvP is a plugin for TShock that adds a pvp ranking ladder with a qeue.
 - /ttopten
 
 ## Permissions
-- terrapvp.join (/tqueue, /tleave, /tinqueue, /tlist, /tlistp)
+- terrapvp.join (/tjoin, /tleave, /tlist, /tlistp)
 - terrapvp.stats (/tstats, /ttopten)
 
 ### Admin
