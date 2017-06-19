@@ -7,7 +7,6 @@ using Terraria;
 using TerrariaApi.Server;
 using System.IO;
 using System.Reflection;
-using Microsoft.Xna.Framework;
 
 // TODO: There is a weird error when closing the server with 'exit' after joining sv.
 // TODO: Fix any problems, then push, and try to add custom inventory (kits).
