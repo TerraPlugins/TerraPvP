@@ -43,10 +43,10 @@ namespace TerraPvP
             ServerApi.Hooks.GamePostInitialize.Register(this, OnPostInitialize);
             TShockAPI.Hooks.PlayerHooks.PlayerPostLogin += OnPlayerLogin;
             TShockAPI.Hooks.PlayerHooks.PlayerCommand += OnCommand;
-            TShockAPI.Hooks.PlayerHooks.PlayerLogout += PlayerHooks_PlayerLogout;
+            TShockAPI.Hooks.PlayerHooks.PlayerLogout += OnPlayerLogout;
             GetDataHandlers.PlayerTeam += OnTeamChange;
-            GetDataHandlers.TogglePvp += onPvPToggle;
-            GetDataHandlers.KillMe += onPlayerDeath;
+            GetDataHandlers.TogglePvp += OnPvPToggle;
+            GetDataHandlers.KillMe += OnPlayerDeath;
         }
 
         protected override void Dispose(bool disposing)
@@ -56,11 +56,11 @@ namespace TerraPvP
                 ServerApi.Hooks.GameInitialize.Deregister(this, OnInitialize);
                 ServerApi.Hooks.GamePostInitialize.Deregister(this, OnPostInitialize);
                 TShockAPI.Hooks.PlayerHooks.PlayerPostLogin -= OnPlayerLogin;
-                TShockAPI.Hooks.PlayerHooks.PlayerLogout -= PlayerHooks_PlayerLogout;
+                TShockAPI.Hooks.PlayerHooks.PlayerLogout -= OnPlayerLogout;
                 TShockAPI.Hooks.PlayerHooks.PlayerCommand -= OnCommand;
                 GetDataHandlers.PlayerTeam -= OnTeamChange;
-                GetDataHandlers.TogglePvp -= onPvPToggle;
-                GetDataHandlers.KillMe -= onPlayerDeath;
+                GetDataHandlers.TogglePvp -= OnPvPToggle;
+                GetDataHandlers.KillMe -= OnPlayerDeath;
             }
             base.Dispose(disposing);
         }
@@ -94,7 +94,7 @@ namespace TerraPvP
             }
         }
 
-        private void PlayerHooks_PlayerLogout(TShockAPI.Hooks.PlayerLogoutEventArgs e)
+        private void OnPlayerLogout(TShockAPI.Hooks.PlayerLogoutEventArgs e)
         {
             Arenas.Find(x => x.Players.Any(j => j.UserID == e.Player.User.ID))
                 .Players.RemoveAll(x => x.UserID == e.Player.User.ID);
@@ -124,7 +124,7 @@ namespace TerraPvP
             }
         }
 
-        private void onPvPToggle(object sender, GetDataHandlers.TogglePvpEventArgs args)
+        private void OnPvPToggle(object sender, GetDataHandlers.TogglePvpEventArgs args)
         {
             var ply = TShock.Players[args.PlayerId];
 
@@ -142,7 +142,7 @@ namespace TerraPvP
             }
         }
 
-        private void onPlayerDeath(object sender, GetDataHandlers.KillMeEventArgs args)
+        private void OnPlayerDeath(object sender, GetDataHandlers.KillMeEventArgs args)
         {
             var ply = TShock.Players[args.PlayerId];
 
