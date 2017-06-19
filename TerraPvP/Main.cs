@@ -8,8 +8,7 @@ using TerrariaApi.Server;
 using System.IO;
 using System.Reflection;
 
-// TODO: There is a weird error when closing the server with 'exit' after joining sv.
-// TODO: Fix any problems, then push, and try to add custom inventory (kits).
+// TODO: Custom inventory (kits).
 
 namespace TerraPvP
 {
