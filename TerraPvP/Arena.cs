@@ -27,6 +27,7 @@ namespace TerraPvP
             AlreadyStarted = false;
             IsValid = false;
             MaxPlayers = -1;
+            CountDown.Elapsed += CountDown_Elapsed;
         }
 
         public Arena(string RegionName, int id, params Spawn[] Spawnpoint)
