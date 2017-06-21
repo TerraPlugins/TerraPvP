@@ -113,6 +113,7 @@ namespace TerraPvP
             if(Players.Count >= 3)
             {
                 CountDown.Interval = 60000;
+                Broadcast(String.Format("[TerraPvP] Arena '{0}' will start in a minute! Join fast!.", RegionName));
                 CountDown.Start();
             }
 
