@@ -2,7 +2,7 @@
 
 Author: Ryozuki
 
-TerraPvP is a plugin for TShock that adds a pvp ranking ladder with a qeue.
+TerraPvP is a plugin for TShock where you create arenas (with as much spawns as you want) and then users can join the arena. And will be teleported and healed on start.
 
 ## Commands:
 
