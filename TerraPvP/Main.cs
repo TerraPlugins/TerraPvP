@@ -243,15 +243,16 @@ namespace TerraPvP
             if (Arenas.Any(x => x.RegionName == args[0]))
             {
                 Arena arena = Arenas.Find(x => x.RegionName == args[0]);
-                var lastTileX = e.Player.LastNetPosition.X;
-                var lastTileY = e.Player.LastNetPosition.Y;
-                arena.SpawnPoints.Add(new Spawn((int)lastTileX, (int)lastTileY));
-                e.Player.SendSuccessMessage($"[TerraPvP] Added spawnpoint for arena {arena.RegionName} at {(int)lastTileX}, {(int)lastTileY}");
+                
+                var positionX = e.Player.TileX;
+                var positionY = e.Player.TileY;
+                arena.SpawnPoints.Add(new Spawn(positionX, positionY));
+                e.Player.SendSuccessMessage($"[TerraPvP] Added spawnpoint for arena {arena.RegionName} at {positionX}, {positionY}");
                 if (arena.SpawnPoints.Count == 2)
                     e.Player.SendInfoMessage("[TerraPvP] You added 2 or more spawns, you may now save (/tsave) or add more.");
             }
             else
-                e.Player.SendErrorMessage("[TerraPvP]  A arena with that name doesn't exist");
+                e.Player.SendErrorMessage("[TerraPvP] A arena with that name doesn't exist");
         }
 
         private void SaveArena(CommandArgs e)

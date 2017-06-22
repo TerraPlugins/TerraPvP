@@ -155,8 +155,8 @@ namespace TerraPvP
 
                 Main.player[player.Index].hostile = true;
                 NetMessage.SendData((int)PacketTypes.TogglePvp, -1, -1, Terraria.Localization.NetworkText.Empty, player.Index);
-
-                player.Teleport(SpawnPoints[i].x, SpawnPoints[i].y);
+                player.SendInfoMessage(String.Format("TELEPORTED TO COORDS: {0}, {1}", SpawnPoints[i].x, SpawnPoints[i].y));
+                player.Teleport(SpawnPoints[i].x*16, SpawnPoints[i].y*16);
 
                 i++;
             }
