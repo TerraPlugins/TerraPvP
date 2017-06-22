@@ -27,7 +27,8 @@ namespace TerraPvP
             AlreadyStarted = false;
             IsValid = false;
             MaxPlayers = -1;
-            CountDown.Elapsed += CountDown_Elapsed;
+            CountDown.Elapsed += new ElapsedEventHandler(CountDown_Elapsed);
+            CountDown.Interval = TerraPvP.Config.SecondsToStart*1000;
         }
 
         public Arena(string RegionName, int id, params Spawn[] Spawnpoint)
@@ -39,10 +40,12 @@ namespace TerraPvP
             AlreadyStarted = false;
             IsValid = true;
             CountDown.Elapsed += CountDown_Elapsed;
+            CountDown.Interval = TerraPvP.Config.SecondsToStart * 1000;
         }
 
         private void CountDown_Elapsed(object sender, ElapsedEventArgs e)
         {
+            CountDown.Stop();
             Start();
         }
 
@@ -54,7 +57,6 @@ namespace TerraPvP
             PRank ply = Players.Find(x => x.UserID == id);
             ply.IsAlive = false;
             int aliveplayers = Players.Count - Players.Count(x => x.IsAlive);
-            //ply.MMR = aliveplayers > Players.Count / 2 ? (ply.MMR - (aliveplayers / 2)) : (ply.MMR + (Players.Count - aliveplayers) / 2);
             ply.MMR += (aliveplayers > Players.Count / 2) ? -aliveplayers : Players.Count - aliveplayers;
 
             ply.Rank = TerraPvP.Config.RankList.OrderBy(x => x.mmr)
@@ -84,7 +86,6 @@ namespace TerraPvP
                 TSPlayer player = GetPlayer(winner);
                 player.Spawn();
                 TShock.Utils.Broadcast(String.Format("[TerraPvP] {0} have won in the arena '{1}'!", player.Name, RegionName), 83, 236, 226);
-
                 Players.Clear();
             }
         }
@@ -111,13 +112,6 @@ namespace TerraPvP
             // TODO: BROADCAST PLAYER JOINED AMONG OTHER USERS
             player.IsAlive = true;
 
-            if(Players.Count >= 3)
-            {
-                CountDown.Interval = 60000;
-                Broadcast(String.Format("[TerraPvP] Arena '{0}' will start in a minute! Join fast!.", RegionName));
-                CountDown.Start();
-            }
-
             if (Players.Count >= SpawnPoints.Count)
                 return false;
             else
@@ -129,6 +123,11 @@ namespace TerraPvP
                 {
                     CountDown.Stop();
                     Start();
+                }
+                else if (Players.Count >= TerraPvP.Config.MinPlayersToCountDown && CountDown.Enabled == false)
+                {
+                    TShock.Utils.Broadcast(String.Format("[TerraPvP] Arena '{0}' will start in a minute! Join fast!.", RegionName), 20, 150, 40);
+                    CountDown.Enabled = true;
                 }
             }
             return true;
@@ -143,6 +142,8 @@ namespace TerraPvP
         {
             if (AlreadyStarted)
                 return;
+
+            CountDown.Enabled = false;
 
             AlreadyStarted = true;
             int i = 0;
